@@ -35,3 +35,24 @@ def load_data() -> Tuple[List[Acolyte], List[ScheduleSlot], List[GeneralEvent]]:
         return acolytes, schedule_slots, general_events
     except (json.JSONDecodeError, KeyError, TypeError):
         return [], [], []
+
+
+def export_to_file(acolytes: List[Acolyte], schedule_slots: List[ScheduleSlot], general_events: List[GeneralEvent], path: str) -> None:
+    """Exporta todos os dados para um arquivo JSON externo."""
+    data = {
+        "acolytes": [a.to_dict() for a in acolytes],
+        "schedule_slots": [s.to_dict() for s in schedule_slots],
+        "general_events": [e.to_dict() for e in general_events],
+    }
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def import_from_file(path: str) -> Tuple[List[Acolyte], List[ScheduleSlot], List[GeneralEvent]]:
+    """Importa todos os dados de um arquivo JSON externo."""
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    acolytes = [Acolyte.from_dict(a) for a in data.get("acolytes", [])]
+    schedule_slots = [ScheduleSlot.from_dict(s) for s in data.get("schedule_slots", [])]
+    general_events = [GeneralEvent.from_dict(e) for e in data.get("general_events", [])]
+    return acolytes, schedule_slots, general_events

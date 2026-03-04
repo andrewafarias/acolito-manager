@@ -305,6 +305,77 @@ class AddEventDialog(BaseDialog):
         self.destroy()
 
 
+class AddMultipleAcolytesDialog(BaseDialog):
+    """Diálogo para adicionar múltiplos acólitos de uma vez."""
+
+    def __init__(self, parent):
+        super().__init__(parent, "Adicionar Acólitos")
+        self._build()
+        self._center()
+        self.wait_window()
+
+    def _build(self):
+        frame = ttk.Frame(self, padding=16)
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        ttk.Label(
+            frame, 
+            text="Digite os nomes dos acólitos (um por linha):"
+        ).pack(anchor="w", pady=(0, 4))
+
+        # Text widget for multiple names
+        text_frame = ttk.Frame(frame)
+        text_frame.pack(fill=tk.BOTH, expand=True, pady=4)
+
+        scrollbar = ttk.Scrollbar(text_frame)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.text_widget = tk.Text(
+            text_frame,
+            width=40,
+            height=10,
+            yscrollcommand=scrollbar.set,
+            font=("TkDefaultFont", 10),
+        )
+        self.text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.config(command=self.text_widget.yview)
+        self.text_widget.focus()
+
+        ttk.Label(
+            frame,
+            text="💡 Dica: Também pode separar por vírgula",
+            foreground="gray"
+        ).pack(anchor="w", pady=4)
+
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack(pady=10)
+        ttk.Button(btn_frame, text="Adicionar", command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+
+    def _ok(self):
+        text = self.text_widget.get("1.0", tk.END).strip()
+        if not text:
+            messagebox.showwarning("Aviso", "Informe pelo menos um nome.", parent=self)
+            return
+        
+        # Parse names - support both newlines and commas
+        names = []
+        for line in text.split('\n'):
+            # Split by comma if present
+            if ',' in line:
+                names.extend([n.strip() for n in line.split(',') if n.strip()])
+            else:
+                if line.strip():
+                    names.append(line.strip())
+        
+        if not names:
+            messagebox.showwarning("Aviso", "Informe pelo menos um nome válido.", parent=self)
+            return
+        
+        self.result = names
+        self.destroy()
+
+
 # ---------------------------------------------------------------------------
 # Painel de slot de escala (widget reutilizável)
 # ---------------------------------------------------------------------------
@@ -579,12 +650,12 @@ class ScheduleTab(ttk.Frame):
             messagebox.showinfo("Aviso", "Nenhum horário de escala criado.")
             return
 
-        lines = ["ESCALA DA SEMANA\n"]
+        lines = ["*ESCALA DA SEMANA*\n"]
         for slot in self.app.schedule_slots:
-            header = f"{slot.day}, {slot.date} - {slot.time}:"
+            header = f"*{slot.day}, {slot.date} - {slot.time}:*"
             lines.append(header)
             if slot.description:
-                lines.append(slot.description)
+                lines.append(f"_{slot.description}_")
             names = []
             for aid in slot.acolyte_ids:
                 ac = self.app.find_acolyte(aid)
@@ -751,6 +822,8 @@ class EventsTab(ttk.Frame):
 
     def _load_event_detail(self):
         ev = self._current_event
+        if not ev:
+            return
         self.ev_name_var.set(ev.name)
         self.ev_date_var.set(ev.date)
         self.ev_time_var.set(ev.time)
@@ -762,6 +835,8 @@ class EventsTab(ttk.Frame):
         self._acolyte_vars.clear()
 
         ev = self._current_event
+        if not ev:
+            return
         sorted_acolytes = sorted(self.app.acolytes, key=lambda a: a.name)
         for ac in sorted_acolytes:
             var = tk.BooleanVar(value=ac.id not in ev.excluded_acolyte_ids)
@@ -871,6 +946,9 @@ class AcolytesTab(ttk.Frame):
         ttk.Separator(left, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=4)
         ttk.Button(left, text="📕 Fechar Semestre", command=self._close_semester).pack(fill=tk.X, pady=2)
         ttk.Button(left, text="📄 Gerar Relatório PDF", command=self._generate_report).pack(fill=tk.X, pady=2)
+        ttk.Separator(left, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=4)
+        ttk.Button(left, text="📤 Exportar Dados", command=self._export_data).pack(fill=tk.X, pady=2)
+        ttk.Button(left, text="📥 Importar Dados", command=self._import_data).pack(fill=tk.X, pady=2)
 
         # --- Painel direito ---
         self.right = ttk.Frame(paned, padding=6)
@@ -1022,6 +1100,8 @@ class AcolytesTab(ttk.Frame):
 
     def _show_acolyte_detail(self):
         ac = self._current_acolyte
+        if not ac:
+            return
         self._show_detail()
         susp_text = " 🔴 SUSPENSO" if ac.is_suspended else ""
         self.name_label.config(text=f"{ac.name}{susp_text}")
@@ -1058,26 +1138,56 @@ class AcolytesTab(ttk.Frame):
             tree.insert("", tk.END, values=row)
 
     def _add_acolyte(self):
-        name = simpledialog.askstring("Novo Acólito", "Nome do acólito:", parent=self.app.root)
-        if not name:
+        dialog = AddMultipleAcolytesDialog(self.app.root)
+        if not dialog.result:
             return
-        name = name.strip()
-        if not name:
-            messagebox.showwarning("Aviso", "O nome não pode estar vazio.")
-            return
-        # Avisa se já existe, mas permite
-        existing = [a for a in self.app.acolytes if a.name.lower() == name.lower()]
-        if existing:
-            if not messagebox.askyesno(
-                "Nome duplicado",
-                f"Já existe um acólito chamado '{name}'. Deseja adicionar mesmo assim?",
-            ):
-                return
-        ac = Acolyte(id=str(uuid.uuid4()), name=name)
-        self.app.acolytes.append(ac)
-        self.refresh_list()
-        self.app.schedule_tab.refresh_acolyte_list()
-        self.app.save()
+        
+        names = dialog.result
+        added_count = 0
+        duplicates = []
+        
+        for name in names:
+            name = name.strip()
+            if not name:
+                continue
+            
+            # Check if already exists
+            existing = [a for a in self.app.acolytes if a.name.lower() == name.lower()]
+            if existing:
+                duplicates.append(name)
+                continue
+            
+            # Add new acolyte
+            ac = Acolyte(id=str(uuid.uuid4()), name=name)
+            self.app.acolytes.append(ac)
+            added_count += 1
+        
+        # Refresh the UI
+        if added_count > 0:
+            self.refresh_list()
+            self.app.schedule_tab.refresh_acolyte_list()
+            self.app.save()
+        
+        # Show summary
+        if added_count > 0 and duplicates:
+            messagebox.showinfo(
+                "Concluído",
+                f"{added_count} acólito(s) adicionado(s) com sucesso.\n\n"
+                f"Nomes duplicados ignorados: {', '.join(duplicates)}",
+                parent=self.app.root
+            )
+        elif added_count > 0:
+            messagebox.showinfo(
+                "Sucesso",
+                f"{added_count} acólito(s) adicionado(s) com sucesso!",
+                parent=self.app.root
+            )
+        elif duplicates:
+            messagebox.showwarning(
+                "Aviso",
+                f"Todos os nomes já existem no sistema:\n{', '.join(duplicates)}",
+                parent=self.app.root
+            )
 
     def _remove_acolyte(self):
         sel = self.acolyte_listbox.curselection()
@@ -1252,6 +1362,12 @@ class AcolytesTab(ttk.Frame):
         except Exception as e:
             messagebox.showerror("Erro", f"Falha ao gerar relatório:\n{e}")
 
+    def _export_data(self):
+        self.app._export_data()
+
+    def _import_data(self):
+        self.app._import_data()
+
     def _open_file(self, path: str):
         """Abre o arquivo com o programa padrão do sistema."""
         try:
@@ -1302,6 +1418,9 @@ class App:
         file_menu.add_command(label="Salvar", command=self.save, accelerator="Ctrl+S")
         file_menu.add_command(label="Carregar", command=self._load_data)
         file_menu.add_separator()
+        file_menu.add_command(label="Exportar Dados...", command=self._export_data)
+        file_menu.add_command(label="Importar Dados...", command=self._import_data)
+        file_menu.add_separator()
         file_menu.add_command(label="Sair", command=self.root.quit)
 
         help_menu = tk.Menu(menubar, tearoff=0)
@@ -1341,6 +1460,53 @@ class App:
     def get_selected_acolyte_for_schedule(self) -> Optional[Acolyte]:
         """Retorna o acólito selecionado na aba de escalas."""
         return self.schedule_tab.get_selected_acolyte()
+
+    def _export_data(self):
+        """Exporta todos os dados para um arquivo JSON."""
+        path = filedialog.asksaveasfilename(
+            defaultextension=".json",
+            filetypes=[("JSON", "*.json")],
+            title="Exportar dados como",
+            initialfile="acolitos_backup.json",
+        )
+        if not path:
+            return
+        try:
+            data_manager.export_to_file(
+                self.acolytes, self.schedule_slots, self.general_events, path
+            )
+            messagebox.showinfo("Sucesso", f"Dados exportados com sucesso para:\n{path}")
+        except Exception as e:
+            messagebox.showerror("Erro", f"Falha ao exportar dados:\n{e}")
+
+    def _import_data(self):
+        """Importa todos os dados de um arquivo JSON."""
+        path = filedialog.askopenfilename(
+            filetypes=[("JSON", "*.json")],
+            title="Importar dados de",
+        )
+        if not path:
+            return
+        if not messagebox.askyesno(
+            "Confirmar Importação",
+            "Atenção: isso substituirá TODOS os dados atuais pelos dados do arquivo importado.\n\n"
+            "Deseja continuar?",
+        ):
+            return
+        try:
+            acolytes, schedule_slots, general_events = data_manager.import_from_file(path)
+            self.acolytes = acolytes
+            self.schedule_slots = schedule_slots
+            self.general_events = general_events
+            self.save()
+            self._load_data()
+            messagebox.showinfo(
+                "Sucesso",
+                f"Dados importados com sucesso!\n\n"
+                f"{len(acolytes)} acólitos, {len(schedule_slots)} escalas, {len(general_events)} eventos.",
+            )
+        except Exception as e:
+            messagebox.showerror("Erro", f"Falha ao importar dados:\n{e}")
 
     def _show_about(self):
         messagebox.showinfo(
