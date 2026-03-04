@@ -140,6 +140,7 @@ class ScheduleTab(ttk.Frame):
         super().__init__(parent)
         self._app = app
         self._slot_frames = {}
+        self._sorted_acolytes: list = []
         self._build()
 
     def _build(self):

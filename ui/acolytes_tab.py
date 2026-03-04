@@ -182,6 +182,7 @@ class AcolytesTab(ttk.Frame):
         super().__init__(parent)
         self._app = app
         self._selected_acolyte: Optional[Acolyte] = None
+        self._sorted: list = []
         self._build()
 
     def _build(self):
@@ -515,10 +516,14 @@ class AcolytesTab(ttk.Frame):
     def _close_semester(self):
         if not messagebox.askyesno(
             "Fechar Semestre",
-            "Isso irá resetar as faltas de todos os acólitos.\nDeseja também resetar os bônus?",
+            "Isso irá resetar as faltas de todos os acólitos. Deseja continuar?",
         ):
             return
-        reset_bonus = messagebox.askyesno("Resetar Bônus?", "Resetar os bônus de todos os acólitos?")
+        reset_bonus = messagebox.askyesno(
+            "Resetar Bônus?",
+            "Deseja também resetar os bônus de todos os acólitos?\n"
+            "(Clique Não para manter os bônus.)",
+        )
         for a in self._app.acolytes:
             a.absences.clear()
             if reset_bonus:
