@@ -1,6 +1,5 @@
 """Aplicação principal de gerenciamento de escala de acólitos."""
 
-import os
 import sys
 import uuid
 import subprocess
@@ -483,7 +482,12 @@ class ScheduleTab(ttk.Frame):
 
         self.slots_frame.bind("<Configure>", on_configure)
         canvas.bind("<Configure>", on_configure)
-        canvas.bind_all("<MouseWheel>", lambda e: canvas.yview_scroll(int(-1 * (e.delta / 120)), "units"))
+
+        def _on_mousewheel(event):
+            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+        canvas.bind("<Enter>", lambda e: canvas.bind_all("<MouseWheel>", _on_mousewheel))
+        canvas.bind("<Leave>", lambda e: canvas.unbind_all("<MouseWheel>"))
 
         self.canvas = canvas
 
@@ -1254,7 +1258,7 @@ class AcolytesTab(ttk.Frame):
             if sys.platform.startswith("darwin"):
                 subprocess.call(["open", path])
             elif sys.platform.startswith("win"):
-                os.startfile(path)
+                subprocess.run(["cmd", "/c", "start", "", path], shell=False)
             else:
                 subprocess.call(["xdg-open", path])
         except Exception:

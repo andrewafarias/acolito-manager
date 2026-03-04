@@ -7,9 +7,9 @@ import uuid
 
 @dataclass
 class Absence:
-    id: str
     date: str
     description: str
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
 
     def to_dict(self) -> dict:
         return {"id": self.id, "date": self.date, "description": self.description}
@@ -21,11 +21,11 @@ class Absence:
 
 @dataclass
 class Suspension:
-    id: str
     reason: str
     start_date: str
     duration: str
     is_active: bool = True
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
 
     def to_dict(self) -> dict:
         return {
@@ -49,11 +49,11 @@ class Suspension:
 
 @dataclass
 class BonusMovement:
-    id: str
     type: str  # 'earn' ou 'use'
     amount: int
     description: str
     date: str
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
 
     def to_dict(self) -> dict:
         return {
@@ -130,8 +130,8 @@ class EventHistoryEntry:
 
 @dataclass
 class Acolyte:
-    id: str
     name: str
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
     times_scheduled: int = 0
     absences: List[Absence] = field(default_factory=list)
     suspensions: List[Suspension] = field(default_factory=list)
@@ -188,12 +188,12 @@ class Acolyte:
 
 @dataclass
 class ScheduleSlot:
-    id: str
     date: str
     day: str
     time: str
     description: str = ""
     acolyte_ids: List[str] = field(default_factory=list)
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
 
     def to_dict(self) -> dict:
         return {
@@ -219,11 +219,11 @@ class ScheduleSlot:
 
 @dataclass
 class GeneralEvent:
-    id: str
     name: str
     date: str
     time: str = ""
     excluded_acolyte_ids: List[str] = field(default_factory=list)
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
 
     def to_dict(self) -> dict:
         return {
