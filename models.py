@@ -243,3 +243,134 @@ class GeneralEvent:
             time=data.get("time", ""),
             excluded_acolyte_ids=data.get("excluded_acolyte_ids", []),
         )
+
+
+@dataclass
+class GeneratedScheduleSlotSnapshot:
+    slot_id: str
+    date: str
+    day: str
+    time: str
+    description: str
+    acolyte_ids: List[str]
+
+    def to_dict(self) -> dict:
+        return {
+            "slot_id": self.slot_id,
+            "date": self.date,
+            "day": self.day,
+            "time": self.time,
+            "description": self.description,
+            "acolyte_ids": self.acolyte_ids,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "GeneratedScheduleSlotSnapshot":
+        return cls(
+            slot_id=data["slot_id"],
+            date=data["date"],
+            day=data["day"],
+            time=data["time"],
+            description=data.get("description", ""),
+            acolyte_ids=data.get("acolyte_ids", []),
+        )
+
+
+@dataclass
+class GeneratedSchedule:
+    id: str
+    generated_at: str
+    schedule_text: str
+    slots: List[GeneratedScheduleSlotSnapshot] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "generated_at": self.generated_at,
+            "schedule_text": self.schedule_text,
+            "slots": [s.to_dict() for s in self.slots],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "GeneratedSchedule":
+        return cls(
+            id=data["id"],
+            generated_at=data["generated_at"],
+            schedule_text=data.get("schedule_text", ""),
+            slots=[GeneratedScheduleSlotSnapshot.from_dict(s) for s in data.get("slots", [])],
+        )
+
+
+@dataclass
+class FinalizedEventBatchEntry:
+    event_id: str
+    name: str
+    date: str
+    time: str
+    participating_acolyte_ids: List[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        return {
+            "event_id": self.event_id,
+            "name": self.name,
+            "date": self.date,
+            "time": self.time,
+            "participating_acolyte_ids": self.participating_acolyte_ids,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "FinalizedEventBatchEntry":
+        return cls(
+            event_id=data["event_id"],
+            name=data["name"],
+            date=data["date"],
+            time=data.get("time", ""),
+            participating_acolyte_ids=data.get("participating_acolyte_ids", []),
+        )
+
+
+@dataclass
+class FinalizedEventBatch:
+    id: str
+    finalized_at: str
+    entries: List[FinalizedEventBatchEntry] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "finalized_at": self.finalized_at,
+            "entries": [e.to_dict() for e in self.entries],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "FinalizedEventBatch":
+        return cls(
+            id=data["id"],
+            finalized_at=data["finalized_at"],
+            entries=[FinalizedEventBatchEntry.from_dict(e) for e in data.get("entries", [])],
+        )
+
+
+@dataclass
+class StandardSlot:
+    day: str
+    time: str
+    description: str
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "day": self.day,
+            "time": self.time,
+            "description": self.description,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "StandardSlot":
+        return cls(
+            id=data["id"],
+            day=data["day"],
+            time=data["time"],
+            description=data.get("description", ""),
+        )

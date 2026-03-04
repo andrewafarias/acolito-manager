@@ -2,6 +2,7 @@
 
 import sys
 import uuid
+import calendar
 import subprocess
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, simpledialog
@@ -19,6 +20,11 @@ from models import (
     EventHistoryEntry,
     ScheduleSlot,
     GeneralEvent,
+    GeneratedScheduleSlotSnapshot,
+    GeneratedSchedule,
+    FinalizedEventBatch,
+    FinalizedEventBatchEntry,
+    StandardSlot,
 )
 
 # Nomes dos dias da semana em português
@@ -34,12 +40,12 @@ WEEKDAYS_PT = [
 
 
 def detect_weekday(date_str: str) -> str:
-    """Detecta o dia da semana a partir de uma data no formato DD/MM."""
+    """Detecta o dia da semana a partir de uma data no formato DD/MM ou DD/MM/YYYY."""
     try:
         parts = date_str.strip().split("/")
-        if len(parts) == 2:
+        if len(parts) >= 2:
             day, month = int(parts[0]), int(parts[1])
-            year = datetime.now().year
+            year = int(parts[2]) if len(parts) == 3 else datetime.now().year
             dt = datetime(year, month, day)
             return WEEKDAYS_PT[dt.weekday()]
     except (ValueError, IndexError):
@@ -109,7 +115,7 @@ class AddAbsenceDialog(BaseDialog):
 
         ttk.Label(frame, text="Data (DD/MM/YYYY):").grid(row=0, column=0, sticky="w", pady=4)
         self.date_var = tk.StringVar(value=today_str())
-        ttk.Entry(frame, textvariable=self.date_var, width=20).grid(row=0, column=1, padx=8, pady=4)
+        DateEntryFrame(frame, textvariable=self.date_var, width=14, date_format="DD/MM/YYYY").grid(row=0, column=1, padx=8, pady=4)
 
         ttk.Label(frame, text="Descrição:").grid(row=1, column=0, sticky="w", pady=4)
         self.desc_var = tk.StringVar()
@@ -149,7 +155,7 @@ class SuspendDialog(BaseDialog):
 
         ttk.Label(frame, text="Data de início (DD/MM/YYYY):").grid(row=1, column=0, sticky="w", pady=4)
         self.start_var = tk.StringVar(value=today_str())
-        ttk.Entry(frame, textvariable=self.start_var, width=20).grid(row=1, column=1, padx=8, pady=4)
+        DateEntryFrame(frame, textvariable=self.start_var, width=14, date_format="DD/MM/YYYY").grid(row=1, column=1, padx=8, pady=4)
 
         ttk.Label(frame, text="Duração:").grid(row=2, column=0, sticky="w", pady=4)
         self.duration_var = tk.StringVar()
@@ -280,7 +286,7 @@ class AddEventDialog(BaseDialog):
 
         ttk.Label(frame, text="Data (DD/MM):").grid(row=1, column=0, sticky="w", pady=4)
         self.date_var = tk.StringVar()
-        ttk.Entry(frame, textvariable=self.date_var, width=15).grid(row=1, column=1, padx=8, pady=4, sticky="w")
+        DateEntryFrame(frame, textvariable=self.date_var, width=8, date_format="DD/MM").grid(row=1, column=1, padx=8, pady=4, sticky="w")
 
         ttk.Label(frame, text="Horário (opcional, HH:MM):").grid(row=2, column=0, sticky="w", pady=4)
         self.time_var = tk.StringVar()
@@ -376,6 +382,134 @@ class AddMultipleAcolytesDialog(BaseDialog):
         self.destroy()
 
 
+class CalendarDialog(BaseDialog):
+    """Mini calendário para seleção de datas."""
+
+    def __init__(self, parent, initial_date: str = "", date_format: str = "DD/MM/YYYY"):
+        self._initial_date = initial_date
+        self._date_format = date_format  # "DD/MM/YYYY" or "DD/MM"
+        super().__init__(parent, "Selecionar Data")
+        self._build()
+        self._center()
+        self.wait_window()
+
+    def _build(self):
+        self._cal_module = calendar
+
+        today = datetime.now()
+        self._view_year = today.year
+        self._view_month = today.month
+
+        if self._initial_date:
+            try:
+                parts = self._initial_date.strip().split("/")
+                if len(parts) == 3:
+                    self._view_year = int(parts[2])
+                    self._view_month = int(parts[1])
+                elif len(parts) == 2:
+                    self._view_month = int(parts[1])
+            except (ValueError, IndexError):
+                pass
+
+        frame = ttk.Frame(self, padding=8)
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        nav = ttk.Frame(frame)
+        nav.pack(fill=tk.X, pady=4)
+        ttk.Button(nav, text="◀", width=3, command=self._prev_month).pack(side=tk.LEFT)
+        self._month_label = ttk.Label(
+            nav, text="", width=20, anchor="center", font=("TkDefaultFont", 10, "bold")
+        )
+        self._month_label.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        ttk.Button(nav, text="▶", width=3, command=self._next_month).pack(side=tk.RIGHT)
+
+        self._cal_frame = ttk.Frame(frame)
+        self._cal_frame.pack(pady=4)
+
+        ttk.Button(frame, text="Cancelar", command=self._cancel).pack(pady=4)
+
+        self._draw_calendar()
+
+    def _draw_calendar(self):
+        for w in self._cal_frame.winfo_children():
+            w.destroy()
+
+        month_names = [
+            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+        ]
+        self._month_label.config(
+            text=f"{month_names[self._view_month - 1]} {self._view_year}"
+        )
+
+        day_headers = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
+        for col, name in enumerate(day_headers):
+            ttk.Label(
+                self._cal_frame, text=name, width=4, anchor="center",
+                font=("TkDefaultFont", 8, "bold")
+            ).grid(row=0, column=col, padx=1)
+
+        weeks = self._cal_module.monthcalendar(self._view_year, self._view_month)
+        for r, week in enumerate(weeks):
+            for c, day in enumerate(week):
+                if day == 0:
+                    ttk.Label(self._cal_frame, text="", width=4).grid(
+                        row=r + 1, column=c, padx=1, pady=1
+                    )
+                else:
+                    ttk.Button(
+                        self._cal_frame,
+                        text=str(day),
+                        width=4,
+                        command=lambda d=day: self._select_day(d),
+                    ).grid(row=r + 1, column=c, padx=1, pady=1)
+
+    def _prev_month(self):
+        if self._view_month == 1:
+            self._view_month = 12
+            self._view_year -= 1
+        else:
+            self._view_month -= 1
+        self._draw_calendar()
+
+    def _next_month(self):
+        if self._view_month == 12:
+            self._view_month = 1
+            self._view_year += 1
+        else:
+            self._view_month += 1
+        self._draw_calendar()
+
+    def _select_day(self, day: int):
+        if self._date_format == "DD/MM":
+            self.result = f"{day:02d}/{self._view_month:02d}"
+        else:
+            self.result = f"{day:02d}/{self._view_month:02d}/{self._view_year}"
+        self.destroy()
+
+    def _ok(self):
+        pass
+
+
+class DateEntryFrame(ttk.Frame):
+    """Frame composto com Entry de data e botão de calendário."""
+
+    def __init__(self, parent, textvariable: tk.StringVar, width: int = 10,
+                 date_format: str = "DD/MM/YYYY", **kwargs):
+        super().__init__(parent, **kwargs)
+        self._var = textvariable
+        self._date_format = date_format
+        ttk.Entry(self, textvariable=textvariable, width=width).pack(side=tk.LEFT)
+        ttk.Button(self, text="📅", width=3, command=self._open_calendar).pack(
+            side=tk.LEFT, padx=1
+        )
+
+    def _open_calendar(self):
+        dlg = CalendarDialog(self, self._var.get(), self._date_format)
+        if dlg.result:
+            self._var.set(dlg.result)
+
+
 # ---------------------------------------------------------------------------
 # Painel de slot de escala (widget reutilizável)
 # ---------------------------------------------------------------------------
@@ -402,7 +536,7 @@ class ScheduleSlotCard(ttk.LabelFrame):
         ttk.Label(row1, text="Data:").pack(side=tk.LEFT)
         self.date_var = tk.StringVar(value=self.slot.date)
         self.date_var.trace_add("write", self._on_date_change)
-        ttk.Entry(row1, textvariable=self.date_var, width=8).pack(side=tk.LEFT, padx=2)
+        DateEntryFrame(row1, textvariable=self.date_var, width=6, date_format="DD/MM").pack(side=tk.LEFT, padx=2)
 
         ttk.Label(row1, text="Hora:").pack(side=tk.LEFT, padx=(6, 0))
         self.time_var = tk.StringVar(value=self.slot.time)
@@ -436,8 +570,8 @@ class ScheduleSlotCard(ttk.LabelFrame):
         row4.pack(fill=tk.X, pady=2)
         ttk.Button(
             row4,
-            text="➕ Adicionar Acólito Selecionado",
-            command=self._add_selected_acolyte,
+            text="➕ Adicionar Acólito(s) Selecionado(s)",
+            command=self._add_selected_acolytes,
         ).pack(side=tk.LEFT)
 
     def _on_date_change(self, *_):
@@ -459,17 +593,21 @@ class ScheduleSlotCard(ttk.LabelFrame):
         self.destroy()
         self.app.save()
 
-    def _add_selected_acolyte(self):
-        acolyte = self.app.get_selected_acolyte_for_schedule()
-        if acolyte is None:
-            messagebox.showinfo("Aviso", "Selecione um acólito na lista à direita.", parent=self)
+    def _add_selected_acolytes(self):
+        acolytes = self.app.get_selected_acolytes_for_schedule()
+        if not acolytes:
+            messagebox.showinfo("Aviso", "Selecione um ou mais acólitos na lista à direita.", parent=self)
             return
-        if acolyte.id in self.slot.acolyte_ids:
-            messagebox.showinfo("Aviso", f"{acolyte.name} já está neste horário.", parent=self)
-            return
-        self.slot.acolyte_ids.append(acolyte.id)
-        self._refresh_acolytes()
-        self.app.save()
+        added = []
+        for acolyte in acolytes:
+            if acolyte.id not in self.slot.acolyte_ids:
+                self.slot.acolyte_ids.append(acolyte.id)
+                added.append(acolyte.name)
+        if added:
+            self._refresh_acolytes()
+            self.app.save()
+        else:
+            messagebox.showinfo("Aviso", "Acólito(s) selecionado(s) já estão neste horário.", parent=self)
 
     def _remove_acolyte(self, acolyte_id: str):
         if acolyte_id in self.slot.acolyte_ids:
@@ -507,6 +645,124 @@ class ScheduleSlotCard(ttk.LabelFrame):
 
 
 # ---------------------------------------------------------------------------
+# Diálogo de horários padrão
+# ---------------------------------------------------------------------------
+
+class StandardSlotsDialog(BaseDialog):
+    """Diálogo para gerenciar horários padrão."""
+
+    def __init__(self, parent, app):
+        self.app = app
+        super().__init__(parent, "Gerenciar Horários Padrão")
+        self._build()
+        self._center()
+        self.wait_window()
+
+    def _build(self):
+        frame = ttk.Frame(self, padding=12)
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        ttk.Label(
+            frame,
+            text="Horários padrão são adicionados automaticamente à escala.",
+            foreground="gray",
+        ).pack(anchor="w", pady=(0, 6))
+
+        # List
+        list_frame = ttk.Frame(frame)
+        list_frame.pack(fill=tk.BOTH, expand=True)
+        sb = ttk.Scrollbar(list_frame)
+        sb.pack(side=tk.RIGHT, fill=tk.Y)
+        self.listbox = tk.Listbox(list_frame, yscrollcommand=sb.set, height=8)
+        self.listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        sb.config(command=self.listbox.yview)
+
+        self._refresh_list()
+
+        # Add form
+        add_frame = ttk.LabelFrame(frame, text="Adicionar Horário Padrão", padding=8)
+        add_frame.pack(fill=tk.X, pady=6)
+
+        ttk.Label(add_frame, text="Dia:").grid(row=0, column=0, sticky="w", pady=2)
+        self._day_var = tk.StringVar()
+        ttk.Combobox(
+            add_frame, textvariable=self._day_var, values=WEEKDAYS_PT, width=16, state="readonly"
+        ).grid(row=0, column=1, padx=4, pady=2, sticky="w")
+
+        ttk.Label(add_frame, text="Hora:").grid(row=1, column=0, sticky="w", pady=2)
+        self._time_var = tk.StringVar()
+        ttk.Entry(add_frame, textvariable=self._time_var, width=8).grid(
+            row=1, column=1, padx=4, pady=2, sticky="w"
+        )
+
+        ttk.Label(add_frame, text="Descrição:").grid(row=2, column=0, sticky="w", pady=2)
+        self._desc_var = tk.StringVar()
+        ttk.Entry(add_frame, textvariable=self._desc_var, width=24).grid(
+            row=2, column=1, padx=4, pady=2, sticky="w"
+        )
+
+        ttk.Button(add_frame, text="➕ Adicionar", command=self._add_slot).grid(
+            row=3, column=0, columnspan=2, pady=6
+        )
+
+        btn_row = ttk.Frame(frame)
+        btn_row.pack(fill=tk.X, pady=4)
+        ttk.Button(btn_row, text="🗑️ Remover Selecionado", command=self._remove_slot).pack(
+            side=tk.LEFT, padx=4
+        )
+        ttk.Button(btn_row, text="📋 Adicionar à Escala Atual", command=self._add_to_schedule).pack(
+            side=tk.LEFT, padx=4
+        )
+        ttk.Button(btn_row, text="Fechar", command=self.destroy).pack(side=tk.RIGHT, padx=4)
+
+    def _refresh_list(self):
+        self.listbox.delete(0, tk.END)
+        for ss in self.app.standard_slots:
+            self.listbox.insert(tk.END, f"{ss.day} {ss.time} - {ss.description}")
+
+    def _add_slot(self):
+        day = self._day_var.get().strip()
+        time = self._time_var.get().strip()
+        desc = self._desc_var.get().strip()
+        if not day:
+            messagebox.showwarning("Aviso", "Selecione o dia da semana.", parent=self)
+            return
+        ss = StandardSlot(id=str(uuid.uuid4()), day=day, time=time, description=desc)
+        self.app.standard_slots.append(ss)
+        self.app.save()
+        self._refresh_list()
+
+    def _remove_slot(self):
+        sel = self.listbox.curselection()
+        if not sel:
+            messagebox.showinfo("Aviso", "Selecione um horário padrão.", parent=self)
+            return
+        idx = sel[0]
+        if idx < len(self.app.standard_slots):
+            self.app.standard_slots.pop(idx)
+            self.app.save()
+            self._refresh_list()
+
+    def _add_to_schedule(self):
+        if not self.app.standard_slots:
+            messagebox.showinfo("Aviso", "Nenhum horário padrão cadastrado.", parent=self)
+            return
+        for ss in self.app.standard_slots:
+            slot = ScheduleSlot(id=str(uuid.uuid4()), date="", day=ss.day, time=ss.time, description=ss.description)
+            self.app.schedule_slots.append(slot)
+        self.app.schedule_tab.load_slots_from_data()
+        self.app.save()
+        messagebox.showinfo(
+            "Concluído",
+            f"{len(self.app.standard_slots)} horário(s) padrão adicionado(s) à escala.",
+            parent=self,
+        )
+
+    def _ok(self):
+        pass
+
+
+# ---------------------------------------------------------------------------
 # Aba 1: Criar Escala
 # ---------------------------------------------------------------------------
 
@@ -532,6 +788,7 @@ class ScheduleTab(ttk.Frame):
         btn_row = ttk.Frame(left)
         btn_row.pack(fill=tk.X, pady=2)
         ttk.Button(btn_row, text="➕ Adicionar Horário", command=self._add_slot).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_row, text="📋 Horários Padrão", command=self._manage_standard_slots).pack(side=tk.LEFT, padx=4)
         ttk.Button(btn_row, text="🗑️ Limpar Escala", command=self._clear_schedule).pack(side=tk.LEFT, padx=4)
 
         # Área rolável para os cards
@@ -572,9 +829,30 @@ class ScheduleTab(ttk.Frame):
 
         # --- Painel direito ---
         right = ttk.Frame(paned, padding=4)
-        paned.add(right, minsize=200)
+        paned.add(right, minsize=220)
 
-        ttk.Label(right, text="Acólitos (por escalas ↑)", font=("TkDefaultFont", 11, "bold")).pack(pady=4)
+        ttk.Label(right, text="Acólitos", font=("TkDefaultFont", 11, "bold")).pack(pady=4)
+
+        # Sorting/filtering controls
+        ctrl_frame = ttk.Frame(right)
+        ctrl_frame.pack(fill=tk.X, pady=2)
+
+        ttk.Label(ctrl_frame, text="Ordem:").pack(side=tk.LEFT)
+        self._sort_dir_var = tk.StringVar(value="asc")
+        ttk.Radiobutton(ctrl_frame, text="↑ Crescente", variable=self._sort_dir_var,
+                        value="asc", command=self.refresh_acolyte_list).pack(side=tk.LEFT, padx=2)
+        ttk.Radiobutton(ctrl_frame, text="↓ Decrescente", variable=self._sort_dir_var,
+                        value="desc", command=self.refresh_acolyte_list).pack(side=tk.LEFT, padx=2)
+
+        self._include_events_var = tk.BooleanVar(value=False)
+        ttk.Checkbutton(
+            right, text="Incluir eventos no total",
+            variable=self._include_events_var,
+            command=self.refresh_acolyte_list,
+        ).pack(anchor="w", padx=4)
+
+        ttk.Label(right, text="(Ctrl+clique para múltiplos)", foreground="gray",
+                  font=("TkDefaultFont", 8)).pack(anchor="w", padx=4)
 
         list_frame = ttk.Frame(right)
         list_frame.pack(fill=tk.BOTH, expand=True)
@@ -584,7 +862,7 @@ class ScheduleTab(ttk.Frame):
         self.acolyte_listbox = tk.Listbox(
             list_frame,
             yscrollcommand=scrollbar.set,
-            selectmode=tk.SINGLE,
+            selectmode=tk.EXTENDED,
             font=("TkDefaultFont", 9),
             activestyle="dotbox",
         )
@@ -592,29 +870,52 @@ class ScheduleTab(ttk.Frame):
         scrollbar.config(command=self.acolyte_listbox.yview)
 
     def refresh_acolyte_list(self):
-        """Atualiza a lista de acólitos ordenada por vezes escalado."""
+        """Atualiza a lista de acólitos com opções de ordenação e filtro."""
         self.acolyte_listbox.delete(0, tk.END)
-        sorted_acolytes = sorted(self.app.acolytes, key=lambda a: a.times_scheduled)
-        for ac in sorted_acolytes:
-            suffix = " (suspenso)" if ac.is_suspended else ""
-            self.acolyte_listbox.insert(tk.END, f"{ac.name}{suffix} ({ac.times_scheduled} escalas)")
 
-        # Colorir acólitos suspensos de vermelho
-        sorted_acolytes_list = list(sorted_acolytes)
-        for i, ac in enumerate(sorted_acolytes_list):
+        include_events = getattr(self, '_include_events_var', None)
+        sort_dir = getattr(self, '_sort_dir_var', None)
+
+        def sort_key(a):
+            base = a.times_scheduled
+            if include_events and include_events.get():
+                base += len(a.event_history)
+            return base
+
+        reverse = sort_dir is not None and sort_dir.get() == "desc"
+        sorted_acolytes = sorted(self.app.acolytes, key=sort_key, reverse=reverse)
+        self._sorted_acolytes_cache = sorted_acolytes
+
+        for ac in sorted_acolytes:
+            total = ac.times_scheduled
+            if include_events and include_events.get():
+                total += len(ac.event_history)
+            suffix = " (suspenso)" if ac.is_suspended else ""
+            self.acolyte_listbox.insert(tk.END, f"{ac.name}{suffix} ({total} escalas)")
+
+        for i, ac in enumerate(sorted_acolytes):
             if ac.is_suspended:
                 self.acolyte_listbox.itemconfig(i, foreground="red")
 
     def get_selected_acolyte(self) -> Optional[Acolyte]:
-        """Retorna o acólito selecionado na lista."""
+        """Retorna o primeiro acólito selecionado na lista."""
+        acolytes = self.get_selected_acolytes()
+        return acolytes[0] if acolytes else None
+
+    def get_selected_acolytes(self) -> List[Acolyte]:
+        """Retorna todos os acólitos selecionados na lista."""
         sel = self.acolyte_listbox.curselection()
         if not sel:
-            return None
-        sorted_acolytes = sorted(self.app.acolytes, key=lambda a: a.times_scheduled)
-        idx = sel[0]
-        if idx < len(sorted_acolytes):
-            return sorted_acolytes[idx]
-        return None
+            return []
+        cache = getattr(self, '_sorted_acolytes_cache', None)
+        if cache is None:
+            self.refresh_acolyte_list()
+            cache = getattr(self, '_sorted_acolytes_cache', [])
+        result = []
+        for idx in sel:
+            if idx < len(cache):
+                result.append(cache[idx])
+        return result
 
     def _add_slot(self):
         slot = ScheduleSlot(id=str(uuid.uuid4()), date="", day="", time="")
@@ -634,6 +935,11 @@ class ScheduleTab(ttk.Frame):
         for widget in self.slots_frame.winfo_children():
             widget.destroy()
         self.app.save()
+
+    def _manage_standard_slots(self):
+        """Abre o diálogo de gerenciamento de horários padrão."""
+        dlg = StandardSlotsDialog(self.app.root, self.app)
+        self.refresh_acolyte_list()
 
     def load_slots_from_data(self):
         """Reconstrói os cards a partir dos dados carregados."""
@@ -666,6 +972,26 @@ class ScheduleTab(ttk.Frame):
 
         text = "\n".join(lines).strip()
 
+        # Build history snapshot
+        snapshot_slots = [
+            GeneratedScheduleSlotSnapshot(
+                slot_id=slot.id,
+                date=slot.date,
+                day=slot.day,
+                time=slot.time,
+                description=slot.description,
+                acolyte_ids=list(slot.acolyte_ids),
+            )
+            for slot in self.app.schedule_slots
+        ]
+        gen_schedule = GeneratedSchedule(
+            id=str(uuid.uuid4()),
+            generated_at=datetime.now().strftime("%d/%m/%Y %H:%M"),
+            schedule_text=text,
+            slots=snapshot_slots,
+        )
+        self.app.generated_schedules.append(gen_schedule)
+
         # Atualiza contadores e histórico de cada acólito
         for slot in self.app.schedule_slots:
             for aid in slot.acolyte_ids:
@@ -690,6 +1016,10 @@ class ScheduleTab(ttk.Frame):
         self.app.save()
         self.refresh_acolyte_list()
         self.app.acolytes_tab.refresh_list()
+
+        # Refresh history tab
+        if hasattr(self.app, 'history_tab'):
+            self.app.history_tab.refresh()
 
         # Exibe o diálogo com o texto gerado
         FinalizeScheduleDialog(self.app.root, text)
@@ -761,7 +1091,7 @@ class EventsTab(ttk.Frame):
 
         ttk.Label(fields, text="Data (DD/MM):").grid(row=1, column=0, sticky="w", pady=4)
         self.ev_date_var = tk.StringVar()
-        ttk.Entry(fields, textvariable=self.ev_date_var, width=12).grid(row=1, column=1, padx=6, pady=4, sticky="w")
+        DateEntryFrame(fields, textvariable=self.ev_date_var, width=8, date_format="DD/MM").grid(row=1, column=1, padx=6, pady=4, sticky="w")
 
         ttk.Label(fields, text="Horário:").grid(row=2, column=0, sticky="w", pady=4)
         self.ev_time_var = tk.StringVar()
@@ -890,19 +1220,38 @@ class EventsTab(ttk.Frame):
         if not self.app.general_events:
             messagebox.showinfo("Aviso", "Nenhum evento cadastrado.")
             return
+        batch_id = str(uuid.uuid4())
+        entries = []
         count = 0
         for ev in self.app.general_events:
+            participants = [ac.id for ac in self.app.acolytes if ac.id not in ev.excluded_acolyte_ids]
+            entry = FinalizedEventBatchEntry(
+                event_id=ev.id,
+                name=ev.name,
+                date=ev.date,
+                time=ev.time,
+                participating_acolyte_ids=participants,
+            )
+            entries.append(entry)
             for ac in self.app.acolytes:
                 if ac.id not in ev.excluded_acolyte_ids:
-                    entry = EventHistoryEntry(
+                    hist_entry = EventHistoryEntry(
                         event_id=ev.id,
                         name=ev.name,
                         date=ev.date,
                         time=ev.time,
                     )
-                    ac.event_history.append(entry)
+                    ac.event_history.append(hist_entry)
                     count += 1
+        batch = FinalizedEventBatch(
+            id=batch_id,
+            finalized_at=datetime.now().strftime("%d/%m/%Y %H:%M"),
+            entries=entries,
+        )
+        self.app.finalized_event_batches.append(batch)
         self.app.save()
+        if hasattr(self.app, 'history_tab'):
+            self.app.history_tab.refresh()
         messagebox.showinfo("Concluído", f"Eventos finalizados! {count} registros adicionados.")
 
 
@@ -946,9 +1295,6 @@ class AcolytesTab(ttk.Frame):
         ttk.Separator(left, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=4)
         ttk.Button(left, text="📕 Fechar Semestre", command=self._close_semester).pack(fill=tk.X, pady=2)
         ttk.Button(left, text="📄 Gerar Relatório PDF", command=self._generate_report).pack(fill=tk.X, pady=2)
-        ttk.Separator(left, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=4)
-        ttk.Button(left, text="📤 Exportar Dados", command=self._export_data).pack(fill=tk.X, pady=2)
-        ttk.Button(left, text="📥 Importar Dados", command=self._import_data).pack(fill=tk.X, pady=2)
 
         # --- Painel direito ---
         self.right = ttk.Frame(paned, padding=6)
@@ -1362,12 +1708,6 @@ class AcolytesTab(ttk.Frame):
         except Exception as e:
             messagebox.showerror("Erro", f"Falha ao gerar relatório:\n{e}")
 
-    def _export_data(self):
-        self.app._export_data()
-
-    def _import_data(self):
-        self.app._import_data()
-
     def _open_file(self, path: str):
         """Abre o arquivo com o programa padrão do sistema."""
         try:
@@ -1381,6 +1721,286 @@ class AcolytesTab(ttk.Frame):
             pass
 
 
+
+# ---------------------------------------------------------------------------
+# Aba 4: Histórico
+# ---------------------------------------------------------------------------
+
+class HistoryTab(ttk.Frame):
+    """Aba de histórico de escalas geradas e eventos finalizados."""
+
+    def __init__(self, parent, app):
+        super().__init__(parent)
+        self.app = app
+        self._build()
+
+    def _build(self):
+        nb = ttk.Notebook(self)
+        nb.pack(fill=tk.BOTH, expand=True)
+
+        self._sched_frame = ttk.Frame(nb)
+        self._event_frame = ttk.Frame(nb)
+        nb.add(self._sched_frame, text="📅 Escalas Geradas")
+        nb.add(self._event_frame, text="🎉 Eventos Finalizados")
+
+        self._build_schedule_history()
+        self._build_event_history()
+
+    def _build_schedule_history(self):
+        paned = tk.PanedWindow(self._sched_frame, orient=tk.HORIZONTAL, sashrelief=tk.RAISED, sashwidth=5)
+        paned.pack(fill=tk.BOTH, expand=True)
+
+        left = ttk.Frame(paned, padding=4)
+        paned.add(left, minsize=260)
+
+        ttk.Label(left, text="Escalas Geradas", font=("TkDefaultFont", 11, "bold")).pack(pady=4)
+
+        list_frame = ttk.Frame(left)
+        list_frame.pack(fill=tk.BOTH, expand=True)
+        sb = ttk.Scrollbar(list_frame)
+        sb.pack(side=tk.RIGHT, fill=tk.Y)
+        self._sched_listbox = tk.Listbox(list_frame, yscrollcommand=sb.set)
+        self._sched_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        sb.config(command=self._sched_listbox.yview)
+        self._sched_listbox.bind("<<ListboxSelect>>", self._on_sched_select)
+
+        ttk.Button(left, text="🗑️ Excluir Escala", command=self._delete_schedule).pack(
+            fill=tk.X, pady=4
+        )
+
+        right = ttk.Frame(paned, padding=4)
+        paned.add(right, minsize=400)
+
+        self._sched_detail_label = ttk.Label(
+            right, text="Selecione uma escala para ver os detalhes.", foreground="gray"
+        )
+        self._sched_detail_label.pack(pady=20)
+
+        self._sched_detail_frame = ttk.Frame(right)
+
+        ttk.Label(
+            self._sched_detail_frame, text="Texto da Escala:", font=("TkDefaultFont", 10, "bold")
+        ).pack(anchor="w")
+
+        txt_frame = ttk.Frame(self._sched_detail_frame)
+        txt_frame.pack(fill=tk.BOTH, expand=True)
+        sb2 = ttk.Scrollbar(txt_frame)
+        sb2.pack(side=tk.RIGHT, fill=tk.Y)
+        self._sched_text = tk.Text(
+            txt_frame, width=50, height=16, yscrollcommand=sb2.set,
+            state=tk.DISABLED, font=("Courier", 9)
+        )
+        self._sched_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        sb2.config(command=self._sched_text.yview)
+
+        ttk.Label(
+            self._sched_detail_frame, text="Slots:", font=("TkDefaultFont", 10, "bold")
+        ).pack(anchor="w", pady=(6, 2))
+
+        slot_frame = ttk.Frame(self._sched_detail_frame)
+        slot_frame.pack(fill=tk.X)
+        sb3 = ttk.Scrollbar(slot_frame, orient=tk.VERTICAL)
+        sb3.pack(side=tk.RIGHT, fill=tk.Y)
+        self._sched_tree = ttk.Treeview(
+            slot_frame,
+            columns=("Data", "Dia", "Hora", "Descrição", "Acólitos"),
+            show="headings",
+            height=6,
+            yscrollcommand=sb3.set,
+        )
+        sb3.config(command=self._sched_tree.yview)
+        for col, w in [("Data", 70), ("Dia", 100), ("Hora", 60), ("Descrição", 140), ("Acólitos", 180)]:
+            self._sched_tree.heading(col, text=col)
+            self._sched_tree.column(col, width=w, minwidth=40)
+        self._sched_tree.pack(fill=tk.X, expand=False)
+
+    def _build_event_history(self):
+        paned = tk.PanedWindow(self._event_frame, orient=tk.HORIZONTAL, sashrelief=tk.RAISED, sashwidth=5)
+        paned.pack(fill=tk.BOTH, expand=True)
+
+        left = ttk.Frame(paned, padding=4)
+        paned.add(left, minsize=260)
+
+        ttk.Label(left, text="Eventos Finalizados", font=("TkDefaultFont", 11, "bold")).pack(pady=4)
+
+        list_frame = ttk.Frame(left)
+        list_frame.pack(fill=tk.BOTH, expand=True)
+        sb = ttk.Scrollbar(list_frame)
+        sb.pack(side=tk.RIGHT, fill=tk.Y)
+        self._ev_listbox = tk.Listbox(list_frame, yscrollcommand=sb.set)
+        self._ev_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        sb.config(command=self._ev_listbox.yview)
+        self._ev_listbox.bind("<<ListboxSelect>>", self._on_ev_select)
+
+        ttk.Button(left, text="🗑️ Excluir Batch", command=self._delete_event_batch).pack(
+            fill=tk.X, pady=4
+        )
+
+        right = ttk.Frame(paned, padding=4)
+        paned.add(right, minsize=400)
+
+        self._ev_detail_label = ttk.Label(
+            right, text="Selecione um lote de eventos para ver os detalhes.", foreground="gray"
+        )
+        self._ev_detail_label.pack(pady=20)
+
+        self._ev_detail_frame = ttk.Frame(right)
+        ttk.Label(
+            self._ev_detail_frame, text="Eventos:", font=("TkDefaultFont", 10, "bold")
+        ).pack(anchor="w")
+
+        ev_frame = ttk.Frame(self._ev_detail_frame)
+        ev_frame.pack(fill=tk.BOTH, expand=True)
+        sb2 = ttk.Scrollbar(ev_frame, orient=tk.VERTICAL)
+        sb2.pack(side=tk.RIGHT, fill=tk.Y)
+        self._ev_tree = ttk.Treeview(
+            ev_frame,
+            columns=("Nome", "Data", "Hora", "Participantes"),
+            show="headings",
+            yscrollcommand=sb2.set,
+        )
+        sb2.config(command=self._ev_tree.yview)
+        for col, w in [("Nome", 160), ("Data", 70), ("Hora", 60), ("Participantes", 200)]:
+            self._ev_tree.heading(col, text=col)
+            self._ev_tree.column(col, width=w, minwidth=40)
+        self._ev_tree.pack(fill=tk.BOTH, expand=True)
+
+    def refresh(self):
+        """Atualiza ambas as listas."""
+        self._refresh_sched_list()
+        self._refresh_ev_list()
+
+    def _refresh_sched_list(self):
+        self._sched_listbox.delete(0, tk.END)
+        for gs in self.app.generated_schedules:
+            slots_count = len(gs.slots)
+            self._sched_listbox.insert(
+                tk.END, f"{gs.generated_at} ({slots_count} horário(s))"
+            )
+
+    def _refresh_ev_list(self):
+        self._ev_listbox.delete(0, tk.END)
+        for fb in self.app.finalized_event_batches:
+            count = len(fb.entries)
+            self._ev_listbox.insert(tk.END, f"{fb.finalized_at} ({count} evento(s))")
+
+    def _on_sched_select(self, event=None):
+        sel = self._sched_listbox.curselection()
+        if not sel:
+            self._sched_detail_label.pack(pady=20)
+            self._sched_detail_frame.pack_forget()
+            return
+        idx = sel[0]
+        if idx >= len(self.app.generated_schedules):
+            return
+        gs = self.app.generated_schedules[idx]
+        self._sched_detail_label.pack_forget()
+        self._sched_detail_frame.pack(fill=tk.BOTH, expand=True)
+
+        self._sched_text.config(state=tk.NORMAL)
+        self._sched_text.delete("1.0", tk.END)
+        self._sched_text.insert(tk.END, gs.schedule_text)
+        self._sched_text.config(state=tk.DISABLED)
+
+        self._sched_tree.delete(*self._sched_tree.get_children())
+        for slot in gs.slots:
+            names = []
+            for aid in slot.acolyte_ids:
+                ac = self.app.find_acolyte(aid)
+                if ac:
+                    names.append(ac.name)
+            self._sched_tree.insert(
+                "", tk.END,
+                values=(slot.date, slot.day, slot.time, slot.description or "-", ", ".join(names) or "-")
+            )
+
+    def _on_ev_select(self, event=None):
+        sel = self._ev_listbox.curselection()
+        if not sel:
+            self._ev_detail_label.pack(pady=20)
+            self._ev_detail_frame.pack_forget()
+            return
+        idx = sel[0]
+        if idx >= len(self.app.finalized_event_batches):
+            return
+        fb = self.app.finalized_event_batches[idx]
+        self._ev_detail_label.pack_forget()
+        self._ev_detail_frame.pack(fill=tk.BOTH, expand=True)
+
+        self._ev_tree.delete(*self._ev_tree.get_children())
+        for entry in fb.entries:
+            names = []
+            for aid in entry.participating_acolyte_ids:
+                ac = self.app.find_acolyte(aid)
+                if ac:
+                    names.append(ac.name)
+            self._ev_tree.insert(
+                "", tk.END,
+                values=(entry.name, entry.date, entry.time or "-", ", ".join(names) or "-")
+            )
+
+    def _delete_schedule(self):
+        sel = self._sched_listbox.curselection()
+        if not sel:
+            messagebox.showinfo("Aviso", "Selecione uma escala para excluir.")
+            return
+        idx = sel[0]
+        if idx >= len(self.app.generated_schedules):
+            return
+        gs = self.app.generated_schedules[idx]
+        if not messagebox.askyesno(
+            "Confirmar",
+            f"Excluir a escala de {gs.generated_at}?\n\n"
+            "Isso reverterá as contagens de escalas dos acólitos envolvidos.",
+        ):
+            return
+        # Reverse acolyte changes: decrement times_scheduled and remove schedule_history entries
+        slot_ids = {s.slot_id for s in gs.slots}
+        for slot in gs.slots:
+            for aid in slot.acolyte_ids:
+                ac = self.app.find_acolyte(aid)
+                if ac:
+                    if ac.times_scheduled > 0:
+                        ac.times_scheduled -= 1
+                    ac.schedule_history = [
+                        e for e in ac.schedule_history if e.schedule_id not in slot_ids
+                    ]
+        self.app.generated_schedules.pop(idx)
+        self.app.save()
+        self._refresh_sched_list()
+        self._sched_detail_label.pack(pady=20)
+        self._sched_detail_frame.pack_forget()
+        self.app.acolytes_tab.refresh_list()
+        self.app.schedule_tab.refresh_acolyte_list()
+        messagebox.showinfo("Concluído", "Escala excluída e contagens revertidas.")
+
+    def _delete_event_batch(self):
+        sel = self._ev_listbox.curselection()
+        if not sel:
+            messagebox.showinfo("Aviso", "Selecione um lote de eventos para excluir.")
+            return
+        idx = sel[0]
+        if idx >= len(self.app.finalized_event_batches):
+            return
+        fb = self.app.finalized_event_batches[idx]
+        if not messagebox.askyesno(
+            "Confirmar",
+            f"Excluir o lote de eventos de {fb.finalized_at}?\n\n"
+            "Isso removerá os registros de eventos dos acólitos.",
+        ):
+            return
+        event_ids = {e.event_id for e in fb.entries}
+        for ac in self.app.acolytes:
+            ac.event_history = [e for e in ac.event_history if e.event_id not in event_ids]
+        self.app.finalized_event_batches.pop(idx)
+        self.app.save()
+        self._refresh_ev_list()
+        self._ev_detail_label.pack(pady=20)
+        self._ev_detail_frame.pack_forget()
+        self.app.acolytes_tab.refresh_list()
+        messagebox.showinfo("Concluído", "Lote de eventos excluído.")
+
+
 # ---------------------------------------------------------------------------
 # Aplicação principal
 # ---------------------------------------------------------------------------
@@ -1390,6 +2010,9 @@ class App:
         self.acolytes: List[Acolyte] = []
         self.schedule_slots: List[ScheduleSlot] = []
         self.general_events: List[GeneralEvent] = []
+        self.generated_schedules: List[GeneratedSchedule] = []
+        self.finalized_event_batches: List[FinalizedEventBatch] = []
+        self.standard_slots: List[StandardSlot] = []
 
         self.root = tk.Tk()
         self.root.title("Gerenciador de Acólitos")
@@ -1436,20 +2059,38 @@ class App:
         self.schedule_tab = ScheduleTab(self.notebook, self)
         self.events_tab = EventsTab(self.notebook, self)
         self.acolytes_tab = AcolytesTab(self.notebook, self)
+        self.history_tab = HistoryTab(self.notebook, self)
 
         self.notebook.add(self.schedule_tab, text="📅 Criar Escala")
         self.notebook.add(self.events_tab, text="🎉 Eventos Gerais")
         self.notebook.add(self.acolytes_tab, text="👥 Acólitos")
+        self.notebook.add(self.history_tab, text="📜 Histórico")
 
     def _load_data(self):
-        self.acolytes, self.schedule_slots, self.general_events = data_manager.load_data()
+        result = data_manager.load_data()
+        (
+            self.acolytes,
+            self.schedule_slots,
+            self.general_events,
+            self.generated_schedules,
+            self.finalized_event_batches,
+            self.standard_slots,
+        ) = result
         self.schedule_tab.refresh_acolyte_list()
         self.schedule_tab.load_slots_from_data()
         self.events_tab.refresh_list()
         self.acolytes_tab.refresh_list()
+        self.history_tab.refresh()
 
     def save(self):
-        data_manager.save_data(self.acolytes, self.schedule_slots, self.general_events)
+        data_manager.save_data(
+            self.acolytes,
+            self.schedule_slots,
+            self.general_events,
+            self.generated_schedules,
+            self.finalized_event_batches,
+            self.standard_slots,
+        )
 
     def find_acolyte(self, acolyte_id: str) -> Optional[Acolyte]:
         for ac in self.acolytes:
@@ -1460,6 +2101,10 @@ class App:
     def get_selected_acolyte_for_schedule(self) -> Optional[Acolyte]:
         """Retorna o acólito selecionado na aba de escalas."""
         return self.schedule_tab.get_selected_acolyte()
+
+    def get_selected_acolytes_for_schedule(self) -> List[Acolyte]:
+        """Retorna todos os acólitos selecionados na aba de escalas."""
+        return self.schedule_tab.get_selected_acolytes()
 
     def _export_data(self):
         """Exporta todos os dados para um arquivo JSON."""
@@ -1473,7 +2118,13 @@ class App:
             return
         try:
             data_manager.export_to_file(
-                self.acolytes, self.schedule_slots, self.general_events, path
+                self.acolytes,
+                self.schedule_slots,
+                self.general_events,
+                path,
+                self.generated_schedules,
+                self.finalized_event_batches,
+                self.standard_slots,
             )
             messagebox.showinfo("Sucesso", f"Dados exportados com sucesso para:\n{path}")
         except Exception as e:
@@ -1494,10 +2145,20 @@ class App:
         ):
             return
         try:
-            acolytes, schedule_slots, general_events = data_manager.import_from_file(path)
+            (
+                acolytes,
+                schedule_slots,
+                general_events,
+                generated_schedules,
+                finalized_event_batches,
+                standard_slots,
+            ) = data_manager.import_from_file(path)
             self.acolytes = acolytes
             self.schedule_slots = schedule_slots
             self.general_events = general_events
+            self.generated_schedules = generated_schedules
+            self.finalized_event_batches = finalized_event_batches
+            self.standard_slots = standard_slots
             self.save()
             self._load_data()
             messagebox.showinfo(
