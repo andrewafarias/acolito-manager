@@ -1,0 +1,47 @@
+Faça um software que irá auxiliar na escala de acólitos de uma igreja. Deverá ter uma GUI.
+
+A finalidade do software é de gerar um texto que será usado para publicar a escala.
+
+O usuário deve ser capaz de adicionar os dias/horários que terão escala, e a descrição daqueles horários (a descrição é opcional)
+
+Em paralaleo ao painel que se cria os horários de escala, deve haver uma lista de todos os acólitos registrados. Os acólitos devem estar ordenados de acordo com quantas vezes já foram escalados, em ordem crescente (baixo pra cima). Assim, o usuário pode selecionar um acólito e depois clicar no botão "adicionar acólito" que terá em cada horário de escala.
+
+Quando terminar, o usuário clicará no botão "finalizar escala", que irá contabilizar todas as mudanças e gerar um texto que poderá ser copiado. O modelo do texto é simples, semelhante a esse (só que nesse não tem nenhuma descrição, mas poderia ter)
+
+```ESCALA DA SEMANA
+
+Quarta-feira, 04/03 - 18:30:
+Edmilson, Flávio, Igor e Matheus Castro
+
+Quinta-feira, 05/03 - 18:30:
+Júnior e Lucas Lima
+
+Sexta-feira, 06/03- 18:00:
+Guilherme, Igor e Sandro
+
+Sábado, 07/03 - 19:30:
+Matheus Magalhães e Gabriel Teixeira
+
+Domingo, 08/03 - 07:00:
+Daniel e Augusto
+
+Domingo, 08/03 - 18:00:
+Andrew e Jonas```
+
+Além dos horários, deverá haver a opção de adicionar os eventos gerais que possuem a participação de todos os acólitos (por exemplo, reunião). Nesses eventos gerais colocar o horário não é obrigatório, somente a data. Deve haver a opção de excluir um acólito do evento para não contabilizar no histórico dele.
+
+
+SOBRE OS ACÓLITOS:
+Cada acólito deve ser uma instância de uma classe. Ele deve ter os atributos: vezes escalados, faltas, suspensões, está suspenso?, tempo de suspensão, quantidade de bônus que possuem. Também haverá o histórico das escalas que participou.
+
+Obviamente, haverá um menu dos acólitos que gerenciará tudo isso.
+
+Na opção de contabilizar falta, deve haver como colocar uma descrição (no que o acólito faltou) e também a data para ser colocada.
+
+Ao suspender, deve haver um campo em que se coloca a razão da suspensão.
+
+Deve haver a opção "dar bônus" e "usar bônus", as duas opções permitem uma descrição que serão registradas no acólito como movimentação de bônus. O usuário também pode alterar diretamente a quantidade de bônus, sem registrar a mudança.
+
+No menu de acólitos, deve haver a opção fechar o semestre, que reseta a falta de todos os acólitos (não reseta as suspensões, resetar os bônus deve ser opcional).
+
+No menu de acólitos, deve haver o botão gerar relatório, que gera um pdf em que cada sessão do documento é o estado atual de um acólito (escalas, eventos participados, faltas, suspensões, bônus (e suas movimentações registradas), etc.)
