@@ -6,7 +6,7 @@ import calendar
 import subprocess
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, simpledialog
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 import data_manager
@@ -64,7 +64,6 @@ def next_occurrence_of_day(day_name: str) -> str:
         target_idx = WEEKDAYS_PT.index(day_name)
     except ValueError:
         return ""
-    from datetime import timedelta
     today = datetime.now()
     current_idx = today.weekday()
     days_ahead = target_idx - current_idx
@@ -321,9 +320,9 @@ class BonusDialog(BaseDialog):
     def _ok(self):
         try:
             amount = int(self.amount_var.get().strip())
+            if amount < 1:
+                amount = 1
         except (ValueError, tk.TclError):
-            amount = 1
-        if amount < 1:
             amount = 1
         desc = self.desc_var.get().strip()
         self.result = (amount, desc)
@@ -1805,6 +1804,7 @@ class AcolytesTab(ttk.Frame):
         susp_text = ""
         if ac.is_suspended:
             # Check if any active suspension has expired end_date
+            # Uses <= so suspension is flagged on its end_date (the date is "reached")
             has_expired = False
             for s in ac.suspensions:
                 if s.is_active and s.end_date:
@@ -2037,10 +2037,7 @@ class AcolytesTab(ttk.Frame):
         if not self._current_acolyte:
             return
         try:
-            val_str = self.bonus_direct_var.get().strip()
-            if not val_str:
-                return
-            new_val = int(val_str)
+            new_val = int(self.bonus_direct_var.get().strip())
         except (ValueError, tk.TclError):
             return
         if new_val < 0:
