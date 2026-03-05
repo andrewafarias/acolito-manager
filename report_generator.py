@@ -193,7 +193,7 @@ def generate_report(acolytes: List[Acolyte], output_path: str) -> str:
         suspension_text = "Sim" if acolyte.is_suspended else "Não"
         active = acolyte.active_suspension
         if active:
-            suspension_text += f" ({active.reason}, início: {active.start_date}, duração: {active.duration})"
+            suspension_text += f" ({active.reason}, início: {active.start_date}, fim: {active.end_date})"
         status_lines = [
             f"<b>Vezes escalado:</b> {acolyte.times_scheduled}",
             f"<b>Faltas:</b> {acolyte.absence_count}",
@@ -219,10 +219,10 @@ def generate_report(acolytes: List[Acolyte], output_path: str) -> str:
         else:
             story.append(Paragraph("Nenhuma escala registrada.", style_body))
 
-        # --- Eventos ---
-        story.append(Paragraph("Eventos", style_section))
+        # --- Atividades ---
+        story.append(Paragraph("Atividades", style_section))
         if acolyte.event_history:
-            header = [["Nome do Evento", "Data", "Horário"]]
+            header = [["Nome da Atividade", "Data", "Horário"]]
             rows = [[e.name, e.date, e.time or "-"] for e in acolyte.event_history]
             table = _build_table(
                 header + rows,
@@ -230,7 +230,7 @@ def generate_report(acolytes: List[Acolyte], output_path: str) -> str:
             )
             story.append(table)
         else:
-            story.append(Paragraph("Nenhum evento registrado.", style_body))
+            story.append(Paragraph("Nenhuma atividade registrada.", style_body))
 
         # --- Faltas ---
         story.append(Paragraph("Faltas", style_section))
@@ -248,12 +248,12 @@ def generate_report(acolytes: List[Acolyte], output_path: str) -> str:
         # --- Suspensões ---
         story.append(Paragraph("Suspensões", style_section))
         if acolyte.suspensions:
-            header = [["Motivo", "Início", "Duração", "Ativa"]]
+            header = [["Motivo", "Início", "Fim", "Ativa"]]
             rows = [
                 [
                     s.reason,
                     s.start_date,
-                    s.duration,
+                    s.end_date,
                     "Sim" if s.is_active else "Não",
                 ]
                 for s in acolyte.suspensions

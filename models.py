@@ -23,7 +23,7 @@ class Absence:
 class Suspension:
     reason: str
     start_date: str
-    duration: str
+    duration: str = ""
     is_active: bool = True
     end_date: str = ""
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
@@ -44,7 +44,7 @@ class Suspension:
             id=data["id"],
             reason=data["reason"],
             start_date=data["start_date"],
-            duration=data["duration"],
+            duration=data.get("duration", ""),
             is_active=data.get("is_active", True),
             end_date=data.get("end_date", ""),
         )
@@ -198,6 +198,8 @@ class ScheduleSlot:
     acolyte_ids: List[str] = field(default_factory=list)
     is_general_event: bool = False
     general_event_name: str = ""
+    include_as_activity: bool = True
+    include_as_schedule: bool = True
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
 
     def to_dict(self) -> dict:
@@ -210,6 +212,8 @@ class ScheduleSlot:
             "acolyte_ids": self.acolyte_ids,
             "is_general_event": self.is_general_event,
             "general_event_name": self.general_event_name,
+            "include_as_activity": self.include_as_activity,
+            "include_as_schedule": self.include_as_schedule,
         }
 
     @classmethod
@@ -223,6 +227,8 @@ class ScheduleSlot:
             acolyte_ids=data.get("acolyte_ids", []),
             is_general_event=data.get("is_general_event", False),
             general_event_name=data.get("general_event_name", ""),
+            include_as_activity=data.get("include_as_activity", True),
+            include_as_schedule=data.get("include_as_schedule", True),
         )
 
 
