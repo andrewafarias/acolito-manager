@@ -14,7 +14,7 @@ table_data = [
         "total_semestre": 0,
         "faltas_data": "",
         "faltas_suspensao": "",
-        "bonus_disponivel": 0,
+        "bonus_disponivel": 999,
         "bonus_utilizado": ""
     },
     {
