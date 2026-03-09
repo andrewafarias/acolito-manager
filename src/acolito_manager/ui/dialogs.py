@@ -478,7 +478,7 @@ class AddEventDialog(BaseDialog):
     """Diálogo para adicionar uma atividade."""
 
     def __init__(self, parent):
-        super().__init__(parent, "Adicionar escala geral")
+        super().__init__(parent, "Adicionar Atividade")
         self._build()
         self._center()
         self.wait_window()
@@ -505,18 +505,8 @@ class AddEventDialog(BaseDialog):
             row=2, column=1, padx=8, pady=4, sticky="w"
         )
 
-        self.include_as_activity_var = tk.BooleanVar(value=True)
-        ttk.Checkbutton(
-            frame, text="Incluir como atividade", variable=self.include_as_activity_var
-        ).grid(row=3, column=0, columnspan=2, sticky="w", pady=4)
-
-        self.include_as_schedule_var = tk.BooleanVar(value=True)
-        ttk.Checkbutton(
-            frame, text="Incluir como escala", variable=self.include_as_schedule_var
-        ).grid(row=4, column=0, columnspan=2, sticky="w", pady=4)
-
         btn_frame = ttk.Frame(frame)
-        btn_frame.grid(row=5, column=0, columnspan=2, pady=10)
+        btn_frame.grid(row=3, column=0, columnspan=2, pady=10)
         ttk.Button(btn_frame, text="Confirmar", command=self._ok).pack(side=tk.LEFT, padx=4)
         ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
 
@@ -530,13 +520,62 @@ class AddEventDialog(BaseDialog):
         if not date:
             messagebox.showwarning("Aviso", "Informe a data da atividade.", parent=self)
             return
-        self.result = (
-            name,
-            date,
-            time,
-            self.include_as_activity_var.get(),
-            self.include_as_schedule_var.get(),
+        self.result = (name, date, time)
+        self.destroy()
+
+
+class AddEscalaGeralDialog(BaseDialog):
+    """Diálogo para adicionar uma escala geral."""
+
+    def __init__(self, parent):
+        super().__init__(parent, "Adicionar Escala Geral")
+        self._build()
+        self._center()
+        self.wait_window()
+
+    def _build(self):
+        frame = ttk.Frame(self, padding=16)
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        ttk.Label(frame, text="Nome da escala geral:").grid(row=0, column=0, sticky="w", pady=4)
+        self.name_var = tk.StringVar()
+        ttk.Entry(frame, textvariable=self.name_var, width=30).grid(
+            row=0, column=1, padx=8, pady=4
         )
+
+        ttk.Label(frame, text="Data (DD/MM):").grid(row=1, column=0, sticky="w", pady=4)
+        self.date_var = tk.StringVar()
+        DateEntryFrame(frame, textvariable=self.date_var, width=8, date_format="DD/MM").grid(
+            row=1, column=1, padx=8, pady=4, sticky="w"
+        )
+
+        ttk.Label(frame, text="Horário (opcional, HH:MM):").grid(row=2, column=0, sticky="w", pady=4)
+        self.time_var = tk.StringVar()
+        TimeEntryFrame(frame, textvariable=self.time_var, width=10).grid(
+            row=2, column=1, padx=8, pady=4, sticky="w"
+        )
+
+        self.include_as_activity_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(
+            frame, text="Incluir como atividade", variable=self.include_as_activity_var
+        ).grid(row=3, column=0, columnspan=2, sticky="w", pady=4)
+
+        btn_frame = ttk.Frame(frame)
+        btn_frame.grid(row=4, column=0, columnspan=2, pady=10)
+        ttk.Button(btn_frame, text="Confirmar", command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+
+    def _ok(self):
+        name = self.name_var.get().strip()
+        date = normalize_date(self.date_var.get().strip())
+        time = self.time_var.get().strip()
+        if not name:
+            messagebox.showwarning("Aviso", "Informe o nome da escala geral.", parent=self)
+            return
+        if not date:
+            messagebox.showwarning("Aviso", "Informe a data da escala geral.", parent=self)
+            return
+        self.result = (name, date, time, self.include_as_activity_var.get())
         self.destroy()
 
 
@@ -878,6 +917,9 @@ class CloseCicloDialog(BaseDialog):
         ttk.Label(frame, text="Ao fechar o ciclo:").pack(anchor="w")
         ttk.Label(
             frame, text="• As faltas de todos os acólitos serão resetadas.", foreground="gray"
+        ).pack(anchor="w")
+        ttk.Label(
+            frame, text="• As escalas e atividades serão resetadas.", foreground="gray"
         ).pack(anchor="w")
         ttk.Label(
             frame, text="• O estado atual será salvo no histórico de ciclos.", foreground="gray"

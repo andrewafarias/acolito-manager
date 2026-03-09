@@ -24,7 +24,7 @@ from ..utils import (
     names_list_to_text,
 )
 from .widgets import DateEntryFrame, TimeEntryFrame
-from .dialogs import AddEventDialog, StandardSlotsDialog, FinalizeScheduleDialog, GeneralEventUnavailabilityDialog
+from .dialogs import AddEscalaGeralDialog, StandardSlotsDialog, FinalizeScheduleDialog, GeneralEventUnavailabilityDialog
 
 
 def _time_in_interval(time_str: str, start_time: str, end_time: str) -> bool:
@@ -191,20 +191,21 @@ class ScheduleSlotCard(ttk.LabelFrame):
             ttk.Label(
                 self.acolyte_frame, text="TODOS",
                 font=("TkDefaultFont", 10, "bold"), foreground="blue"
-            ).pack(side=tk.LEFT)
+            ).grid(row=0, column=0, sticky="w")
             return
 
         if not self.slot.acolyte_ids:
-            ttk.Label(self.acolyte_frame, text="(nenhum acólito)", foreground="gray").pack(
-                side=tk.LEFT
+            ttk.Label(self.acolyte_frame, text="(nenhum acólito)", foreground="gray").grid(
+                row=0, column=0, sticky="w"
             )
             return
 
-        for aid in self.slot.acolyte_ids:
+        max_cols = 5
+        for i, aid in enumerate(self.slot.acolyte_ids):
             acolyte = self.app.find_acolyte(aid)
             name = acolyte.name if acolyte else f"(id:{aid[:6]})"
             lbl_frame = ttk.Frame(self.acolyte_frame, relief="solid", padding=2)
-            lbl_frame.pack(side=tk.LEFT, padx=2)
+            lbl_frame.grid(row=i // max_cols, column=i % max_cols, padx=2, pady=1, sticky="w")
             ttk.Label(lbl_frame, text=name, font=("TkDefaultFont", 8)).pack(side=tk.LEFT)
             btn = ttk.Button(
                 lbl_frame,
@@ -394,9 +395,9 @@ class ScheduleTab(ttk.Frame):
         self.app.save()
 
     def _add_general_event_slot(self):
-        dlg = AddEventDialog(self.app.root)
+        dlg = AddEscalaGeralDialog(self.app.root)
         if dlg.result:
-            name, date, time, include_as_activity, include_as_schedule = dlg.result
+            name, date, time, include_as_activity = dlg.result
 
             all_acolyte_ids = [ac.id for ac in self.app.acolytes]
             day = detect_weekday(date)
@@ -431,7 +432,7 @@ class ScheduleTab(ttk.Frame):
                 is_general_event=True,
                 general_event_name=name,
                 include_as_activity=include_as_activity,
-                include_as_schedule=include_as_schedule,
+                include_as_schedule=True,
             )
             self.app.schedule_slots.append(slot)
             card = ScheduleSlotCard(self.slots_frame, slot, self.app)
@@ -510,31 +511,35 @@ class ScheduleTab(ttk.Frame):
         self.app.generated_schedules.append(gen_schedule)
 
         for slot in self.app.schedule_slots:
-            if not slot.is_general_event or slot.include_as_schedule:
-                for aid in slot.acolyte_ids:
-                    ac = self.app.find_acolyte(aid)
-                    if ac:
-                        ac.times_scheduled += 1
-                        entry = ScheduleHistoryEntry(
-                            schedule_id=slot.id,
-                            date=slot.date,
-                            day=slot.day,
-                            time=slot.time,
-                            description=slot.description,
-                        )
-                        ac.schedule_history.append(entry)
+            for aid in slot.acolyte_ids:
+                ac = self.app.find_acolyte(aid)
+                if ac:
+                    ac.times_scheduled += 1
+                    entry = ScheduleHistoryEntry(
+                        schedule_id=slot.id,
+                        date=slot.date,
+                        day=slot.day,
+                        time=slot.time,
+                        description=slot.description,
+                    )
+                    ac.schedule_history.append(entry)
 
         if general_event_slots:
             batch_id = str(uuid.uuid4())
             batch_entries = []
 
             for slot in general_event_slots:
+                if not slot.include_as_activity:
+                    continue
+
                 event_id = str(uuid.uuid4())
                 event_name = slot.general_event_name or slot.description
 
-                participating_acolyte_ids = [
-                    ac.id for ac in self.app.acolytes if not ac.is_suspended
-                ]
+                participating_acolyte_ids = []
+                for aid in slot.acolyte_ids:
+                    ac = self.app.find_acolyte(aid)
+                    if ac and not ac.is_suspended:
+                        participating_acolyte_ids.append(aid)
 
                 batch_entry = FinalizedEventBatchEntry(
                     event_id=event_id,
@@ -555,12 +560,13 @@ class ScheduleTab(ttk.Frame):
                         )
                         ac.event_history.append(hist_entry)
 
-            batch = FinalizedEventBatch(
-                id=batch_id,
-                finalized_at=datetime.now().strftime("%d/%m/%Y %H:%M"),
-                entries=batch_entries,
-            )
-            self.app.finalized_event_batches.append(batch)
+            if batch_entries:
+                batch = FinalizedEventBatch(
+                    id=batch_id,
+                    finalized_at=datetime.now().strftime("%d/%m/%Y %H:%M"),
+                    entries=batch_entries,
+                )
+                self.app.finalized_event_batches.append(batch)
 
         self.app.schedule_slots.clear()
         self._slot_cards.clear()
