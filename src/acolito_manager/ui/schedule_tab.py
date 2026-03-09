@@ -455,8 +455,12 @@ class ScheduleTab(ttk.Frame):
         StandardSlotsDialog(self.app.root, self.app)
         self.refresh_acolyte_list()
 
-    def load_slots_from_data(self):
+    def load_slots_from_data(self, adapt_dates: bool = False):
         """Reconstrói os cards a partir dos dados carregados."""
+        if adapt_dates:
+            for slot in self.app.schedule_slots:
+                if slot.day:
+                    slot.date = next_occurrence_of_day(slot.day)
         self._slot_cards.clear()
         for widget in self.slots_frame.winfo_children():
             widget.destroy()
@@ -469,6 +473,11 @@ class ScheduleTab(ttk.Frame):
         if not self.app.schedule_slots:
             messagebox.showinfo("Aviso", "Nenhum horário de escala criado.")
             return
+
+        # Auto-populate general event slots that have empty acolyte_ids (reused after previous finalization)
+        for slot in self.app.schedule_slots:
+            if slot.is_general_event and not slot.acolyte_ids:
+                slot.acolyte_ids = [ac.id for ac in self.app.acolytes]
 
         lines = ["*ESCALA DA SEMANA*\n"]
         general_event_slots = []
@@ -569,10 +578,14 @@ class ScheduleTab(ttk.Frame):
                 )
                 self.app.finalized_event_batches.append(batch)
 
-        self.app.schedule_slots.clear()
-        self._slot_cards.clear()
-        for widget in self.slots_frame.winfo_children():
-            widget.destroy()
+        # Reset slots for reuse: new IDs, clear acolytes, update dates
+        for slot in self.app.schedule_slots:
+            slot.id = str(uuid.uuid4())
+            slot.acolyte_ids = []
+            if slot.day:
+                slot.date = next_occurrence_of_day(slot.day)
+
+        self.load_slots_from_data()
 
         self.app.save()
         self.refresh_acolyte_list()

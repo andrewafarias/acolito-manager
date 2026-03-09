@@ -527,6 +527,8 @@ class AddEventDialog(BaseDialog):
 class AddEscalaGeralDialog(BaseDialog):
     """Diálogo para adicionar uma escala geral."""
 
+    _last_include_as_activity: bool = True
+
     def __init__(self, parent):
         super().__init__(parent, "Adicionar Escala Geral")
         self._build()
@@ -555,7 +557,9 @@ class AddEscalaGeralDialog(BaseDialog):
             row=2, column=1, padx=8, pady=4, sticky="w"
         )
 
-        self.include_as_activity_var = tk.BooleanVar(value=True)
+        self.include_as_activity_var = tk.BooleanVar(
+            value=AddEscalaGeralDialog._last_include_as_activity
+        )
         ttk.Checkbutton(
             frame, text="Incluir como atividade", variable=self.include_as_activity_var
         ).grid(row=3, column=0, columnspan=2, sticky="w", pady=4)
@@ -589,6 +593,7 @@ class AddEscalaGeralDialog(BaseDialog):
                 parent=self,
             )
             return
+        AddEscalaGeralDialog._last_include_as_activity = include_activity
         self.result = (name, date, time, include_activity, include_schedule)
         self.destroy()
 
