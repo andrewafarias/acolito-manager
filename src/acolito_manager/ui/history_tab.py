@@ -1,5 +1,6 @@
 """Aba de histórico de escalas e atividades finalizadas."""
 
+import os
 import sys
 import subprocess
 import tkinter as tk
@@ -665,7 +666,7 @@ class HistoryTab(ttk.Frame):
             if sys.platform.startswith("darwin"):
                 subprocess.call(["open", path])
             elif sys.platform.startswith("win"):
-                subprocess.run(["cmd", "/c", "start", "", path], shell=False)
+                os.startfile(path)
             else:
                 subprocess.call(["xdg-open", path])
         except Exception:
