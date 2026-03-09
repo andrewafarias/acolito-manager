@@ -7,7 +7,7 @@ from typing import List, Optional
 class UndoManager:
     """Manages undo/redo operations using full state snapshots.
 
-    Each snapshot is a plain dict produced by serialising the entire
+    Each snapshot is a plain dict produced by serializing the entire
     application state (via the existing ``to_dict`` helpers).
 
     A *merge threshold* prevents rapid-fire saves (e.g. each keystroke

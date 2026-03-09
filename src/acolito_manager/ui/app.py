@@ -195,8 +195,10 @@ class App:
             return
         self._restore_state(state)
         self._is_restoring = True
-        self.save()
-        self._is_restoring = False
+        try:
+            self.save()
+        finally:
+            self._is_restoring = False
         self._refresh_all()
 
     def redo(self) -> None:
@@ -205,8 +207,10 @@ class App:
             return
         self._restore_state(state)
         self._is_restoring = True
-        self.save()
-        self._is_restoring = False
+        try:
+            self.save()
+        finally:
+            self._is_restoring = False
         self._refresh_all()
 
     def find_acolyte(self, acolyte_id: str) -> Optional[Acolyte]:
