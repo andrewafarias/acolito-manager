@@ -38,7 +38,7 @@ class CalendarDialog(BaseDialog):
             y = max(0, min(y, sh - h))
             self.geometry(f"+{x}+{y}")
         else:
-            self._center()
+            pass
 
     def _build(self):
         self._cal_module = calendar
@@ -211,13 +211,12 @@ class TimePickerDialog(BaseDialog):
             y = max(0, min(y, sh - h))
             self.geometry(f"+{x}+{y}")
         else:
-            self._center()
+            pass
 
     def _get_common_times(self):
-        if self._app is not None and hasattr(self._app, 'custom_common_times') and self._app.custom_common_times:
+        if self._app is not None and hasattr(self._app, 'custom_common_times'):
             return list(self._app.custom_common_times)
-        from ..data_manager import DEFAULT_COMMON_TIMES
-        return list(DEFAULT_COMMON_TIMES)
+        return []
 
     def _build(self):
         frame = ttk.Frame(self, padding=8)
@@ -262,44 +261,64 @@ class TimePickerDialog(BaseDialog):
         common_label_frame.pack(fill=tk.X, pady=(8, 2))
         ttk.Label(common_label_frame, text="Horários comuns:", foreground="gray").pack(side=tk.LEFT)
 
-        # Scrollable list of common times
-        list_frame = ttk.Frame(frame)
-        list_frame.pack(fill=tk.X)
-        sb = ttk.Scrollbar(list_frame, orient=tk.VERTICAL)
-        sb.pack(side=tk.RIGHT, fill=tk.Y)
-        self._times_listbox = tk.Listbox(
-            list_frame, yscrollcommand=sb.set, height=5, selectmode=tk.SINGLE, exportselection=False
-        )
-        self._times_listbox.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        sb.config(command=self._times_listbox.yview)
-        self._times_listbox.bind("<Double-Button-1>", lambda e: self._select_from_list())
-        self._populate_times_listbox()
+        self._common_times_frame = ttk.Frame(frame)
+        self._common_times_frame.pack(fill=tk.X, pady=(2, 4))
 
-        # Add / Remove row
+        # Add new common time row
         manage_frame = ttk.Frame(frame)
         manage_frame.pack(fill=tk.X, pady=4)
         self._new_time_var = tk.StringVar()
         ttk.Entry(manage_frame, textvariable=self._new_time_var, width=7).pack(side=tk.LEFT, padx=2)
-        ttk.Button(manage_frame, text="➕", width=3, command=self._add_common_time).pack(side=tk.LEFT, padx=1)
-        ttk.Button(manage_frame, text="🗑️", width=3, command=self._remove_common_time).pack(side=tk.LEFT, padx=1)
-        ttk.Button(manage_frame, text="Usar Selecionado", command=self._select_from_list).pack(side=tk.LEFT, padx=4)
+        ttk.Button(manage_frame, text="+", width=3, command=self._add_common_time).pack(side=tk.LEFT, padx=1)
+
+        self._render_common_times()
 
         btn_frame = ttk.Frame(frame)
         btn_frame.pack(pady=8)
         ttk.Button(btn_frame, text="Confirmar", command=self._ok).pack(side=tk.LEFT, padx=4)
         ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
 
-    def _populate_times_listbox(self):
-        self._times_listbox.delete(0, tk.END)
-        for t in self._get_common_times():
-            self._times_listbox.insert(tk.END, t)
+    def _save_common_times(self, times):
+        if self._app is not None:
+            self._app.custom_common_times = list(times)
+            self._app.save()
 
-    def _select_from_list(self):
-        sel = self._times_listbox.curselection()
-        if sel:
-            time_str = self._times_listbox.get(sel[0])
-            self.result = time_str
-            self.destroy()
+    def _render_common_times(self):
+        for child in self._common_times_frame.winfo_children():
+            child.destroy()
+
+        times = self._get_common_times()
+        if not times:
+            ttk.Label(
+                self._common_times_frame,
+                text="Nenhum horário comum cadastrado.",
+                foreground="gray",
+            ).pack(anchor="w")
+            return
+
+        max_cols = 3
+        for idx, time_str in enumerate(times):
+            row = idx // max_cols
+            col = idx % max_cols
+
+            item_frame = ttk.Frame(self._common_times_frame)
+            item_frame.grid(row=row, column=col, padx=2, pady=2, sticky="w")
+
+            ttk.Button(
+                item_frame,
+                text=time_str,
+                command=lambda t=time_str: self._select_common_time(t),
+            ).pack(side=tk.LEFT)
+            ttk.Button(
+                item_frame,
+                text="x",
+                width=2,
+                command=lambda t=time_str: self._remove_common_time(t),
+            ).pack(side=tk.LEFT, padx=(2, 0))
+
+    def _select_common_time(self, time_str: str):
+        self.result = time_str
+        self.destroy()
 
     def _add_common_time(self):
         time_str = self._new_time_var.get().strip()
@@ -318,28 +337,22 @@ class TimePickerDialog(BaseDialog):
             from tkinter import messagebox as mb
             mb.showwarning("Aviso", "Informe um horário válido no formato HH:MM.", parent=self)
             return
+
         times = self._get_common_times()
         if time_str not in times:
             times.append(time_str)
             times.sort()
-            if self._app is not None:
-                self._app.custom_common_times = times
-                self._app.save()
-        self._new_time_var.set("")
-        self._populate_times_listbox()
+            self._save_common_times(times)
 
-    def _remove_common_time(self):
-        sel = self._times_listbox.curselection()
-        if not sel:
-            return
-        time_str = self._times_listbox.get(sel[0])
+        self._new_time_var.set("")
+        self._render_common_times()
+
+    def _remove_common_time(self, time_str: str):
         times = self._get_common_times()
         if time_str in times:
             times.remove(time_str)
-            if self._app is not None:
-                self._app.custom_common_times = times
-                self._app.save()
-        self._populate_times_listbox()
+            self._save_common_times(times)
+        self._render_common_times()
 
     def _ok(self):
         try:

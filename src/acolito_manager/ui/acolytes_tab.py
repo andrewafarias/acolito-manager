@@ -22,6 +22,7 @@ from ..models import (
 from ..utils import today_str, is_currently_suspended
 from .dialogs import (
     AddAbsenceDialog,
+    EditAbsenceDialog,
     AddScheduleEntryDialog,
     AddEventEntryDialog,
     SuspendDialog,
@@ -196,6 +197,7 @@ class AcolytesTab(ttk.Frame):
         )
         abs_btn_frame = ttk.Frame(self._tab_absences)
         abs_btn_frame.pack(fill=tk.X, pady=2)
+        ttk.Button(abs_btn_frame, text="✏️ Editar Falta", command=self._edit_absence).pack(side=tk.LEFT, padx=2)
         ttk.Button(abs_btn_frame, text="🗑️ Excluir Falta", command=self._delete_absence).pack(side=tk.LEFT, padx=2)
         self._tree_suspensions = self._make_tree(
             self._tab_suspensions, ("Motivo", "Início", "Fim", "Ativa"), (180, 100, 100, 60)
@@ -385,17 +387,30 @@ class AcolytesTab(ttk.Frame):
 
         # Atualiza as tabelas
         self._refresh_tree(self._tree_schedule, [
-            (e.date, e.day, e.time, e.description or "-", "Sim" if e.missed else "Não") for e in ac.schedule_history
+            (
+                e.date,
+                e.day,
+                e.time,
+                e.description or "-",
+                self._format_missed_display(ac, "schedule", e.schedule_id, e.missed),
+            )
+            for e in ac.schedule_history
         ])
         self._refresh_tree(self._tree_events, [
-            (e.name, e.date, e.time or "-", "Sim" if e.missed else "Não") for e in ac.event_history
+            (
+                e.name,
+                e.date,
+                e.time or "-",
+                self._format_missed_display(ac, "event", e.event_id, e.missed),
+            )
+            for e in ac.event_history
         ])
         self._refresh_tree(self._tree_absences, [
                 (
                     a.date,
                     a.description or "-",
                     "Sim" if a.linked_entry_type else "Não",
-                    "(não contada)" if a.is_symbolic else "",
+                    "Sim" if a.is_symbolic else "Não",
                 )
                 for a in ac.absences
             ])
@@ -452,6 +467,14 @@ class AcolytesTab(ttk.Frame):
             if absence.linked_entry_type == entry_type and absence.linked_entry_id == entry_id:
                 return absence
         return None
+
+    def _format_missed_display(self, ac: Acolyte, entry_type: str, entry_id: str, missed: bool) -> str:
+        if not missed:
+            return "Não"
+        linked_absence = self._find_linked_absence(ac, entry_type, entry_id)
+        if linked_absence and linked_absence.is_symbolic:
+            return "Sim (simbólica)"
+        return "Sim"
 
     def _clear_linked_missed_flag(self, ac: Acolyte, absence: Absence):
         if absence.linked_entry_type == "schedule":
@@ -685,6 +708,26 @@ class AcolytesTab(ttk.Frame):
             date, desc = dlg.result
             absence = Absence(id=str(uuid.uuid4()), date=date, description=desc)
             self._current_acolyte.absences.append(absence)
+            self._show_acolyte_detail()
+            self.app.save()
+
+    def _edit_absence(self):
+        if not self._current_acolyte:
+            return
+        sel = self._tree_absences.selection()
+        if not sel:
+            messagebox.showinfo("Aviso", "Selecione uma falta para editar.")
+            return
+        idx = self._tree_absences.index(sel[0])
+        ac = self._current_acolyte
+        if idx >= len(ac.absences):
+            return
+        absence = ac.absences[idx]
+        dlg = EditAbsenceDialog(self.app.root, absence)
+        if dlg.result:
+            absence.date = dlg.result["date"]
+            absence.description = dlg.result["description"]
+            absence.is_symbolic = dlg.result["is_symbolic"]
             self._show_acolyte_detail()
             self.app.save()
 
@@ -933,8 +976,7 @@ class AcolytesTab(ttk.Frame):
         if idx >= len(ac.schedule_history):
             return
         entry = ac.schedule_history[idx]
-        entry.missed = not entry.missed
-        self._sync_linked_absence(ac, "schedule", entry, entry.missed)
+        self._toggle_linked_missed_state(ac, "schedule", entry)
         self._show_acolyte_detail()
         self.app.save()
 
@@ -989,10 +1031,22 @@ class AcolytesTab(ttk.Frame):
         if idx >= len(ac.event_history):
             return
         entry = ac.event_history[idx]
-        entry.missed = not entry.missed
-        self._sync_linked_absence(ac, "event", entry, entry.missed)
+        self._toggle_linked_missed_state(ac, "event", entry)
         self._show_acolyte_detail()
         self.app.save()
+
+    def _toggle_linked_missed_state(self, ac: Acolyte, entry_type: str, entry):
+        entry_id = entry.event_id if entry_type == "event" else entry.schedule_id
+        linked_absence = self._find_linked_absence(ac, entry_type, entry_id)
+
+        # If the entry is symbolic missed, toggling normal missed should convert it
+        # to regular missed instead of clearing the missed state.
+        if entry.missed and linked_absence and linked_absence.is_symbolic:
+            linked_absence.is_symbolic = False
+            return
+
+        entry.missed = not entry.missed
+        self._sync_linked_absence(ac, entry_type, entry, entry.missed)
 
     def _toggle_symbolic_linked_absence(self, entry_type: str):
         if not self._current_acolyte:
@@ -1022,6 +1076,14 @@ class AcolytesTab(ttk.Frame):
 
         linked_absence = self._find_linked_absence(ac, entry_type, entry_id)
 
+        # If already symbolic, toggling symbolic should fully unmark the missed state.
+        if entry.missed and linked_absence and linked_absence.is_symbolic:
+            entry.missed = False
+            self._sync_linked_absence(ac, entry_type, entry, False)
+            self._show_acolyte_detail()
+            self.app.save()
+            return
+
         # If there is no linked absence yet, mark as missed first and create one.
         if not linked_absence:
             entry.missed = True
@@ -1032,7 +1094,7 @@ class AcolytesTab(ttk.Frame):
             messagebox.showwarning("Aviso", "Não foi possível vincular a falta para esta entrada.")
             return
 
-        linked_absence.is_symbolic = not linked_absence.is_symbolic
+        linked_absence.is_symbolic = True
         self._show_acolyte_detail()
         self.app.save()
 

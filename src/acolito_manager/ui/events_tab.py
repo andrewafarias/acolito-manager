@@ -123,10 +123,6 @@ class EventsTab(ttk.Frame):
 
         self.participants_inner.bind("<Configure>", on_configure)
 
-        ttk.Button(
-            self.detail_frame, text="💾 Salvar Atividade", command=self._save_event
-        ).pack(fill=tk.X, pady=8)
-
     def _show_detail(self):
         self.detail_label.pack_forget()
         self.detail_frame.pack(fill=tk.BOTH, expand=True)

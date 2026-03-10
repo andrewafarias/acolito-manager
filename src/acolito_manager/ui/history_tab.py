@@ -276,7 +276,7 @@ class HistoryTab(ttk.Frame):
             "Editar Escala",
             f"Deseja carregar a escala de {gs.generated_at} para edição?\n\n"
             "As contagens dos acólitos serão revertidas e a escala será movida para a aba de criação.\n"
-            "Horários existentes na aba de criação serão mantidos.",
+            "Horários existentes na aba de criação serão descartados.",
         ):
             return
 
@@ -291,6 +291,9 @@ class HistoryTab(ttk.Frame):
                     ac.schedule_history = [
                         e for e in ac.schedule_history if e.schedule_id not in slot_ids
                     ]
+
+        # Discard currently edited schedule slots/cards before loading snapshot
+        self.app.schedule_slots.clear()
 
         # Create schedule slots from the snapshot
         for snap in gs.slots:
@@ -531,16 +534,18 @@ class HistoryTab(ttk.Frame):
         ):
             return
 
-        # Ask for label for the current cycle being closed
+        # Always ask user for the current cycle label, pre-filling with the existing name
         import tkinter.simpledialog as sd
         current_label = sd.askstring(
             "Fechar Ciclo Atual",
             "Informe um rótulo para o ciclo atual antes de restaurar:",
+            initialvalue=self.app.current_cycle_name.strip(),
             parent=self.app.root,
         )
         if current_label is None:
             return
-        if not current_label.strip():
+        current_label = current_label.strip()
+        if not current_label:
             current_label = f"Ciclo fechado em {datetime.now().strftime('%d/%m/%Y %H:%M')}"
 
         import uuid as _uuid

@@ -22,7 +22,6 @@ class AddAbsenceDialog(BaseDialog):
     def __init__(self, parent):
         super().__init__(parent, "Registrar Falta")
         self._build()
-        self._center()
         self.wait_window()
 
     def _build(self):
@@ -56,13 +55,61 @@ class AddAbsenceDialog(BaseDialog):
         self.destroy()
 
 
+class EditAbsenceDialog(BaseDialog):
+    """Diálogo para editar uma falta."""
+
+    def __init__(self, parent, absence):
+        self._absence = absence
+        super().__init__(parent, "Editar Falta")
+        self._build()
+        self.wait_window()
+
+    def _build(self):
+        frame = ttk.Frame(self, padding=16)
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        ttk.Label(frame, text="Data (DD/MM/YYYY):").grid(row=0, column=0, sticky="w", pady=4)
+        self.date_var = tk.StringVar(value=self._absence.date)
+        DateEntryFrame(frame, textvariable=self.date_var, width=14, date_format="DD/MM/YYYY").grid(
+            row=0, column=1, padx=8, pady=4
+        )
+
+        ttk.Label(frame, text="Descrição:").grid(row=1, column=0, sticky="w", pady=4)
+        self.desc_var = tk.StringVar(value=self._absence.description or "")
+        ttk.Entry(frame, textvariable=self.desc_var, width=30).grid(
+            row=1, column=1, padx=8, pady=4
+        )
+
+        ttk.Label(frame, text="Não contada:").grid(row=2, column=0, sticky="w", pady=4)
+        self.symbolic_var = tk.BooleanVar(value=self._absence.is_symbolic)
+        ttk.Checkbutton(frame, variable=self.symbolic_var).grid(
+            row=2, column=1, padx=8, pady=4, sticky="w"
+        )
+
+        btn_frame = ttk.Frame(frame)
+        btn_frame.grid(row=3, column=0, columnspan=2, pady=10)
+        ttk.Button(btn_frame, text="Salvar", command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+
+    def _ok(self):
+        date = normalize_date(self.date_var.get().strip())
+        if not date:
+            messagebox.showwarning("Aviso", "Informe a data.", parent=self)
+            return
+        self.result = {
+            "date": date,
+            "description": self.desc_var.get().strip(),
+            "is_symbolic": self.symbolic_var.get(),
+        }
+        self.destroy()
+
+
 class AddScheduleEntryDialog(BaseDialog):
     """Diálogo para adicionar uma entrada no histórico de escalas."""
 
     def __init__(self, parent):
         super().__init__(parent, "Adicionar Entrada de Escala")
         self._build()
-        self._center()
         self.wait_window()
 
     def _build(self):
@@ -116,7 +163,6 @@ class AddEventEntryDialog(BaseDialog):
     def __init__(self, parent):
         super().__init__(parent, "Adicionar Entrada de Atividade")
         self._build()
-        self._center()
         self.wait_window()
 
     def _build(self):
@@ -166,7 +212,6 @@ class SuspendDialog(BaseDialog):
     def __init__(self, parent):
         super().__init__(parent, "Suspender Acólito")
         self._build()
-        self._center()
         self.wait_window()
 
     def _build(self):
@@ -214,7 +259,6 @@ class SelectSuspensionsDialog(BaseDialog):
         self._suspensions = suspensions
         super().__init__(parent, "Selecionar Suspensões para Levantar")
         self._build()
-        self._center()
         self.wait_window()
 
     def _build(self):
@@ -256,7 +300,6 @@ class EditSuspensionDialog(BaseDialog):
         self._suspension = suspension
         super().__init__(parent, "Editar Suspensão")
         self._build()
-        self._center()
         self.wait_window()
 
     def _build(self):
@@ -310,7 +353,6 @@ class BonusDialog(BaseDialog):
         title = "Dar Bônus" if bonus_type == "earn" else "Usar Bônus"
         super().__init__(parent, title)
         self._build()
-        self._center()
         self.wait_window()
 
     def _build(self):
@@ -353,7 +395,6 @@ class EditBonusMovementDialog(BaseDialog):
         self._movement = movement
         super().__init__(parent, "Editar Movimentação de Bônus")
         self._build()
-        self._center()
         self.wait_window()
 
     def _build(self):
@@ -431,7 +472,6 @@ class FinalizeScheduleDialog(BaseDialog):
         super().__init__(parent, "Escala Gerada")
         self._text = text
         self._build()
-        self._center()
         self.wait_window()
 
     def _build(self):
@@ -480,7 +520,6 @@ class AddEventDialog(BaseDialog):
     def __init__(self, parent):
         super().__init__(parent, "Adicionar Atividade")
         self._build()
-        self._center()
         self.wait_window()
 
     def _build(self):
@@ -532,7 +571,6 @@ class AddEscalaGeralDialog(BaseDialog):
     def __init__(self, parent):
         super().__init__(parent, "Adicionar Escala Geral")
         self._build()
-        self._center()
         self.wait_window()
 
     def _build(self):
@@ -604,7 +642,6 @@ class AddMultipleAcolytesDialog(BaseDialog):
     def __init__(self, parent):
         super().__init__(parent, "Adicionar Acólitos")
         self._build()
-        self._center()
         self.wait_window()
 
     def _build(self):
@@ -673,7 +710,6 @@ class StandardSlotsDialog(BaseDialog):
         self.app = app
         super().__init__(parent, "Gerenciar Horários Padrão")
         self._build()
-        self._center()
         self.wait_window()
 
     def _build(self):
@@ -790,7 +826,6 @@ class AddUnavailabilityDialog(BaseDialog):
     def __init__(self, parent):
         super().__init__(parent, "Adicionar Indisponibilidade")
         self._build()
-        self._center()
         self.wait_window()
 
     def _build(self):
@@ -857,7 +892,6 @@ class GeneralEventUnavailabilityDialog(BaseDialog):
         self._conflicting_acolytes = conflicting_acolytes
         super().__init__(parent, "Aviso de Indisponibilidade")
         self._build()
-        self._center()
         self.wait_window()
 
     def _build(self):
@@ -928,7 +962,6 @@ class EditGeneralEventExcludedDialog(BaseDialog):
         self._suspended_locked_ids = set(suspended_locked_ids or [])
         super().__init__(parent, "Editar Excluídos - Escala Geral")
         self._build()
-        self._center()
         self.wait_window()
 
     def _build(self):
@@ -985,7 +1018,6 @@ class CloseCicloDialog(BaseDialog):
         self._initial_label = initial_label
         super().__init__(parent, "Fechar Ciclo")
         self._build()
-        self._center()
         self.wait_window()
 
     def _build(self):

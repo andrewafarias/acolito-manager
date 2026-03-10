@@ -443,7 +443,7 @@ def generate_report(
             ]
             table = _build_table(
                 header + rows,
-                [2.2 * cm, 3.0 * cm, 2.2 * cm, page_width - 10.4 * cm, 2.0 * cm],
+                [2.2 * cm, 3.0 * cm, 2.2 * cm, page_width - 9.4 * cm, 2.0 * cm],
             )
             story.append(table)
         else:
@@ -467,9 +467,9 @@ def generate_report(
         # --- Faltas ---
         story.append(Paragraph("Faltas", style_section))
         if acolyte.absences:
-            header = [["Data", "Descrição", "Status"]]
+            header = [["Data", "Descrição", "Contada"]]
             rows = [
-                [a.date, a.description or "-", "(não contada)" if a.is_symbolic else ""]
+                [a.date, a.description or "-", "Não" if a.is_symbolic else "Sim"]
                 for a in acolyte.absences
             ]
             table = _build_table(

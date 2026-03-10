@@ -12,7 +12,6 @@ class BaseDialog(tk.Toplevel):
         self.resizable(False, False)
         self.grab_set()
         self.result = None
-        self._center()
 
     def _center(self):
         self.update_idletasks()
