@@ -195,6 +195,7 @@ class Acolyte:
     schedule_history: List[ScheduleHistoryEntry] = field(default_factory=list)
     event_history: List[EventHistoryEntry] = field(default_factory=list)
     unavailabilities: List[Unavailability] = field(default_factory=list)
+    birthdate: str = ""  # DD/MM/YYYY
 
 
     @property
@@ -225,6 +226,7 @@ class Acolyte:
             "schedule_history": [sh.to_dict() for sh in self.schedule_history],
             "event_history": [eh.to_dict() for eh in self.event_history],
             "unavailabilities": [u.to_dict() for u in self.unavailabilities],
+            "birthdate": self.birthdate,
         }
 
     @classmethod
@@ -242,6 +244,7 @@ class Acolyte:
             schedule_history=[ScheduleHistoryEntry.from_dict(sh) for sh in data.get("schedule_history", [])],
             event_history=[EventHistoryEntry.from_dict(eh) for eh in data.get("event_history", [])],
             unavailabilities=[Unavailability.from_dict(u) for u in data.get("unavailabilities", [])],
+            birthdate=data.get("birthdate", ""),
         )
 
 

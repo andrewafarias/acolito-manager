@@ -21,6 +21,13 @@ DATA_FILE = DATA_DIR / "acolitos_data.json"
 
 DEFAULT_COMMON_TIMES = []
 
+DEFAULT_BIRTHDAY_SETTINGS = {
+    "enabled": False,
+    "whatsapp_group": "",
+    "message_template": "Feliz aniversário, {nome}! 🎂🎉",
+    "send_time": "08:00",
+}
+
 
 def save_data(
     acolytes: List[Acolyte],
@@ -36,6 +43,7 @@ def save_data(
     auto_lift_suspensions_on_end_date: bool = False,
     current_cycle_name: str = "",
     order_message_by_date: bool = True,
+    birthday_settings: dict = None,
 ) -> None:
     """Salva todos os dados no arquivo JSON."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -52,6 +60,8 @@ def save_data(
         "include_activity_table_per_acolyte": include_activity_table_per_acolyte,
         "auto_lift_suspensions_on_end_date": auto_lift_suspensions_on_end_date,
         "current_cycle_name": current_cycle_name,
+        "order_message_by_date": order_message_by_date,
+        "birthday_settings": birthday_settings if birthday_settings is not None else DEFAULT_BIRTHDAY_SETTINGS.copy(),
     }
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
@@ -60,7 +70,7 @@ def save_data(
 def load_data():
     """Carrega os dados do arquivo JSON. Retorna listas vazias se o arquivo não existir."""
     if not DATA_FILE.exists():
-        return [], [], [], [], [], [], [], list(DEFAULT_COMMON_TIMES), True, True, False, "", True
+        return [], [], [], [], [], [], [], list(DEFAULT_COMMON_TIMES), True, True, False, "", True, DEFAULT_BIRTHDAY_SETTINGS.copy()
     try:
         with open(DATA_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -77,6 +87,7 @@ def load_data():
         auto_lift_suspensions_on_end_date = data.get("auto_lift_suspensions_on_end_date", False)
         current_cycle_name = data.get("current_cycle_name", "")
         order_message_by_date = data.get("order_message_by_date", True)
+        birthday_settings = data.get("birthday_settings", DEFAULT_BIRTHDAY_SETTINGS.copy())
         return (
             acolytes,
             schedule_slots,
@@ -91,9 +102,10 @@ def load_data():
             auto_lift_suspensions_on_end_date,
             current_cycle_name,
             order_message_by_date,
+            birthday_settings,
         )
     except (json.JSONDecodeError, KeyError, TypeError):
-        return [], [], [], [], [], [], [], list(DEFAULT_COMMON_TIMES), True, True, False, ""
+        return [], [], [], [], [], [], [], list(DEFAULT_COMMON_TIMES), True, True, False, "", True, DEFAULT_BIRTHDAY_SETTINGS.copy()
 
 
 def export_to_file(
@@ -111,6 +123,7 @@ def export_to_file(
     auto_lift_suspensions_on_end_date: bool = False,
     current_cycle_name: str = "",
     order_message_by_date: bool = True,
+    birthday_settings: dict = None,
 ) -> None:
     """Exporta todos os dados para um arquivo JSON externo."""
     data = {
@@ -127,6 +140,7 @@ def export_to_file(
         "auto_lift_suspensions_on_end_date": auto_lift_suspensions_on_end_date,
         "current_cycle_name": current_cycle_name,
         "order_message_by_date": order_message_by_date,
+        "birthday_settings": birthday_settings if birthday_settings is not None else DEFAULT_BIRTHDAY_SETTINGS.copy(),
     }
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
@@ -149,6 +163,7 @@ def import_from_file(path: str):
     auto_lift_suspensions_on_end_date = data.get("auto_lift_suspensions_on_end_date", False)
     current_cycle_name = data.get("current_cycle_name", "")
     order_message_by_date = data.get("order_message_by_date", True)
+    birthday_settings = data.get("birthday_settings", DEFAULT_BIRTHDAY_SETTINGS.copy())
     return (
         acolytes,
         schedule_slots,
@@ -163,4 +178,5 @@ def import_from_file(path: str):
         auto_lift_suspensions_on_end_date,
         current_cycle_name,
         order_message_by_date,
+        birthday_settings,
     )

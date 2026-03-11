@@ -3,8 +3,10 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from typing import List, Optional
+from datetime import datetime
 
 from ..data_manager import save_data, load_data, export_to_file, import_from_file
+from ..utils import get_birthday_acolytes_this_week, detect_weekday
 from ..models import (
     Acolyte,
     ScheduleSlot,
@@ -36,6 +38,12 @@ class App:
         self.auto_lift_suspensions_on_end_date: bool = False
         self.current_cycle_name: str = ""
         self.order_message_by_date: bool = True
+        self.birthday_settings: dict = {
+            "enabled": False,
+            "whatsapp_group": "",
+            "message_template": "Feliz aniversário, {nome}! 🎂🎉",
+            "send_time": "08:00",
+        }
 
         self.root = tk.Tk()
         self.root.title("Gerenciador de Acólitos")
@@ -50,6 +58,9 @@ class App:
         # Make custom_common_times accessible to time picker
         from .widgets import TimePickerDialog
         TimePickerDialog._app = self
+
+        # Show birthday warning after startup
+        self.root.after(500, self._check_birthdays_this_week)
 
     def _apply_theme(self):
         style = ttk.Style(self.root)
@@ -107,6 +118,12 @@ class App:
             variable=self._order_message_by_date_var,
             command=self._on_toggle_order_message_by_date,
         )
+        settings_menu.add_separator()
+        settings_menu.add_command(
+            label="Aniversários... (temporariamente desativado)",
+            command=self._open_birthday_settings,
+            state=tk.DISABLED,
+        )
 
         help_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Ajuda", menu=help_menu)
@@ -143,6 +160,7 @@ class App:
             self.auto_lift_suspensions_on_end_date,
             self.current_cycle_name,
             self.order_message_by_date,
+            self.birthday_settings,
         ) = result
         if hasattr(self, "_include_suspended_general_event_var"):
             self._include_suspended_general_event_var.set(
@@ -182,6 +200,7 @@ class App:
             self.auto_lift_suspensions_on_end_date,
             self.current_cycle_name,
             self.order_message_by_date,
+            self.birthday_settings,
         )
 
     def _on_toggle_include_suspended_general_event(self):
@@ -248,6 +267,7 @@ class App:
                 self.auto_lift_suspensions_on_end_date,
                 self.current_cycle_name,
                 self.order_message_by_date,
+                self.birthday_settings,
             )
             messagebox.showinfo("Sucesso", f"Dados exportados com sucesso para:\n{path}")
         except Exception as e:
@@ -282,6 +302,7 @@ class App:
                 auto_lift_suspensions_on_end_date,
                 current_cycle_name,
                 order_message_by_date,
+                birthday_settings,
             ) = import_from_file(path)
             self.acolytes = acolytes
             self.schedule_slots = schedule_slots
@@ -296,6 +317,7 @@ class App:
             self.auto_lift_suspensions_on_end_date = auto_lift_suspensions_on_end_date
             self.current_cycle_name = current_cycle_name
             self.order_message_by_date = order_message_by_date
+            self.birthday_settings = birthday_settings
             self.save()
             self._load_data()
             messagebox.showinfo(
@@ -318,6 +340,32 @@ class App:
             "- Gerenciar acólitos (faltas, bônus, suspensões)\n"
             "- Gerar relatórios em PDF",
         )
+
+    def _open_birthday_settings(self):
+        from .dialogs import BirthdaySettingsDialog
+        dialog = BirthdaySettingsDialog(self.root, self.birthday_settings)
+        if dialog.result is not None:
+            self.birthday_settings = dialog.result
+            self.save()
+
+    def _check_birthdays_this_week(self):
+        birthday_acolytes = get_birthday_acolytes_this_week(self.acolytes)
+        if not birthday_acolytes:
+            return
+        names = []
+        for ac in birthday_acolytes:
+            try:
+                bd = datetime.strptime(ac.birthdate, "%d/%m/%Y")
+                date_str = bd.strftime('%d/%m')
+                weekday = detect_weekday(ac.birthdate)
+                if weekday:
+                    names.append(f"🎂 {ac.name} — {date_str} ({weekday})")
+                else:
+                    names.append(f"🎂 {ac.name} — {date_str}")
+            except ValueError:
+                names.append(f"🎂 {ac.name}")
+        msg = "Aniversariantes desta semana:\n\n" + "\n".join(names)
+        messagebox.showinfo("Aniversários da Semana", msg)
 
     def run(self):
         self.root.mainloop()

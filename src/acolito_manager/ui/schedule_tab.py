@@ -671,10 +671,11 @@ class ScheduleTab(ttk.Frame):
             card._card_meta = (kind, item.id)
             card.pack(fill=tk.X, padx=4, pady=4)
 
-    def _bind_drag_to_widget(self, widget, item_type: str, item_id: str):
+    def _bind_drag_to_widget(self, widget, item_type: str, item_id: str, card=None):
         """Bind drag-and-drop events to a widget."""
         # Store reference to the card widget (parent if this is a child frame)
-        card = widget if isinstance(widget, (ScheduleSlotCard, type(None))) else None
+        if card is None:
+            card = widget if isinstance(widget, ScheduleSlotCard) else None
         if not card:
             # If widget is a frame, find its parent card
             parent = widget.master
