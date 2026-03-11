@@ -374,6 +374,7 @@ class GeneratedSchedule:
     generated_at: str
     schedule_text: str
     slots: List[GeneratedScheduleSlotSnapshot] = field(default_factory=list)
+    batch_id: Optional[str] = None  # ID of the linked FinalizedEventBatch, if any
 
     def to_dict(self) -> dict:
         return {
@@ -381,6 +382,7 @@ class GeneratedSchedule:
             "generated_at": self.generated_at,
             "schedule_text": self.schedule_text,
             "slots": [s.to_dict() for s in self.slots],
+            "batch_id": self.batch_id,
         }
 
     @classmethod
@@ -390,6 +392,7 @@ class GeneratedSchedule:
             generated_at=data["generated_at"],
             schedule_text=data.get("schedule_text", ""),
             slots=[GeneratedScheduleSlotSnapshot.from_dict(s) for s in data.get("slots", [])],
+            batch_id=data.get("batch_id"),
         )
 
 

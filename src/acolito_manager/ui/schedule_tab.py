@@ -1015,6 +1015,7 @@ class ScheduleTab(ttk.Frame):
                     entries=batch_entries,
                 )
                 self.app.finalized_event_batches.append(batch)
+                gen_schedule.batch_id = batch_id
 
         self.app.events_tab.finalize_pending_events()
 
