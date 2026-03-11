@@ -44,6 +44,8 @@ class AcolytesTab(ttk.Frame):
         self.app = app
         self._current_acolyte: Optional[Acolyte] = None
         self._overview_frame = None
+        self._notes_save_job = None
+        self._loading_notes = False
         self._build()
 
     # --------------------------------------------------------------------- #
@@ -155,6 +157,7 @@ class AcolytesTab(ttk.Frame):
         self._tab_suspensions = ttk.Frame(self.detail_notebook)
         self._tab_bonus = ttk.Frame(self.detail_notebook)
         self._tab_unavailabilities = ttk.Frame(self.detail_notebook)
+        self._tab_internal_notes = ttk.Frame(self.detail_notebook)
 
         self.detail_notebook.add(self._tab_schedule, text="Histórico de Escalas")
         self.detail_notebook.add(self._tab_events, text="Atividades")
@@ -162,6 +165,36 @@ class AcolytesTab(ttk.Frame):
         self.detail_notebook.add(self._tab_suspensions, text="Suspensões")
         self.detail_notebook.add(self._tab_bonus, text="Movimentação de Bônus")
         self.detail_notebook.add(self._tab_unavailabilities, text="Indisponibilidades")
+        self.detail_notebook.add(self._tab_internal_notes, text="Notas Internas")
+
+        notes_container = ttk.Frame(self._tab_internal_notes, padding=6)
+        notes_container.pack(fill=tk.BOTH, expand=True)
+        self.internal_notes_text = tk.Text(
+            notes_container,
+            wrap=tk.WORD,
+            undo=True,
+            autoseparators=True,
+            maxundo=100,
+        )
+        self.internal_notes_text.pack(fill=tk.BOTH, expand=True)
+        self.internal_notes_text.bind("<KeyRelease>", self._on_internal_notes_change)
+        self.internal_notes_text.bind("<FocusOut>", self._on_internal_notes_focus_out)
+
+        # Atalhos de edição para facilitar o uso das notas.
+        self.internal_notes_text.bind("<Control-z>", self._notes_undo)
+        self.internal_notes_text.bind("<Control-Z>", self._notes_undo)
+        self.internal_notes_text.bind("<Control-Shift-z>", self._notes_redo)
+        self.internal_notes_text.bind("<Control-Shift-Z>", self._notes_redo)
+        self.internal_notes_text.bind("<Control-y>", self._notes_redo)
+        self.internal_notes_text.bind("<Control-Y>", self._notes_redo)
+        self.internal_notes_text.bind("<Control-a>", self._notes_select_all)
+        self.internal_notes_text.bind("<Control-A>", self._notes_select_all)
+        self.internal_notes_text.bind("<Control-c>", self._notes_copy)
+        self.internal_notes_text.bind("<Control-C>", self._notes_copy)
+        self.internal_notes_text.bind("<Control-v>", self._notes_paste)
+        self.internal_notes_text.bind("<Control-V>", self._notes_paste)
+        self.internal_notes_text.bind("<Control-x>", self._notes_cut)
+        self.internal_notes_text.bind("<Control-X>", self._notes_cut)
 
         # Criação das tabelas
         self._tree_schedule = self._make_tree(
@@ -379,6 +412,11 @@ class AcolytesTab(ttk.Frame):
                 f"Suspensões: {ac.suspension_count}  |  Bônus: {ac.bonus_count}"
             )
         )
+        self._loading_notes = True
+        self.internal_notes_text.delete("1.0", tk.END)
+        self.internal_notes_text.insert("1.0", ac.internal_notes or "")
+        self._loading_notes = False
+
         # Temporarily disconnect spinbox command
         old_command = self.bonus_spin.config('command')[-1]
         self.bonus_spin.config(command='')
@@ -540,6 +578,60 @@ class AcolytesTab(ttk.Frame):
     # --------------------------------------------------------------------- #
     #  Add / Remove Acolytes
     # --------------------------------------------------------------------- #
+
+    def _on_internal_notes_change(self, _event=None):
+        if self._loading_notes:
+            return
+        if self._notes_save_job is not None:
+            self.after_cancel(self._notes_save_job)
+        self._notes_save_job = self.after(400, self._save_internal_notes)
+
+    def _on_internal_notes_focus_out(self, _event=None):
+        self._save_internal_notes()
+
+    def _notes_undo(self, _event=None):
+        try:
+            self.internal_notes_text.edit_undo()
+        except tk.TclError:
+            pass
+        return "break"
+
+    def _notes_redo(self, _event=None):
+        try:
+            self.internal_notes_text.edit_redo()
+        except tk.TclError:
+            pass
+        return "break"
+
+    def _notes_select_all(self, _event=None):
+        self.internal_notes_text.tag_add(tk.SEL, "1.0", tk.END)
+        self.internal_notes_text.mark_set(tk.INSERT, "1.0")
+        self.internal_notes_text.see(tk.INSERT)
+        return "break"
+
+    def _notes_copy(self, _event=None):
+        self.internal_notes_text.event_generate("<<Copy>>")
+        return "break"
+
+    def _notes_paste(self, _event=None):
+        self.internal_notes_text.event_generate("<<Paste>>")
+        return "break"
+
+    def _notes_cut(self, _event=None):
+        self.internal_notes_text.event_generate("<<Cut>>")
+        return "break"
+
+    def _save_internal_notes(self):
+        if not self._current_acolyte:
+            return
+        if self._notes_save_job is not None:
+            self.after_cancel(self._notes_save_job)
+            self._notes_save_job = None
+        notes = self.internal_notes_text.get("1.0", tk.END).rstrip()
+        if self._current_acolyte.internal_notes == notes:
+            return
+        self._current_acolyte.internal_notes = notes
+        self.app.save()
 
     def _add_acolyte(self):
         dialog = AddMultipleAcolytesDialog(self.app.root)

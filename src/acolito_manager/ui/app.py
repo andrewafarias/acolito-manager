@@ -15,7 +15,6 @@ from ..models import (
     CicloHistoryEntry,
 )
 from .schedule_tab import ScheduleTab
-from .events_tab import EventsTab
 from .acolytes_tab import AcolytesTab
 from .history_tab import HistoryTab
 
@@ -36,6 +35,7 @@ class App:
         self.include_activity_table_per_acolyte: bool = True
         self.auto_lift_suspensions_on_end_date: bool = False
         self.current_cycle_name: str = ""
+        self.order_message_by_date: bool = True
 
         self.root = tk.Tk()
         self.root.title("Gerenciador de Acólitos")
@@ -99,6 +99,14 @@ class App:
             variable=self._auto_lift_suspensions_var,
             command=self._on_toggle_auto_lift_suspensions,
         )
+        self._order_message_by_date_var = tk.BooleanVar(
+            value=self.order_message_by_date
+        )
+        settings_menu.add_checkbutton(
+            label="Ordenar mensagem por data",
+            variable=self._order_message_by_date_var,
+            command=self._on_toggle_order_message_by_date,
+        )
 
         help_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Ajuda", menu=help_menu)
@@ -111,12 +119,11 @@ class App:
         self.notebook.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
 
         self.schedule_tab = ScheduleTab(self.notebook, self)
-        self.events_tab = EventsTab(self.notebook, self)
+        self.events_tab = self.schedule_tab.events_tab
         self.acolytes_tab = AcolytesTab(self.notebook, self)
         self.history_tab = HistoryTab(self.notebook, self)
 
         self.notebook.add(self.schedule_tab, text="📅 Criar Escala")
-        self.notebook.add(self.events_tab, text="⛪ Atividades")
         self.notebook.add(self.acolytes_tab, text="👥 Acólitos")
         self.notebook.add(self.history_tab, text="📜 Histórico")
 
@@ -135,6 +142,7 @@ class App:
             self.include_activity_table_per_acolyte,
             self.auto_lift_suspensions_on_end_date,
             self.current_cycle_name,
+            self.order_message_by_date,
         ) = result
         if hasattr(self, "_include_suspended_general_event_var"):
             self._include_suspended_general_event_var.set(
@@ -147,6 +155,10 @@ class App:
         if hasattr(self, "_auto_lift_suspensions_var"):
             self._auto_lift_suspensions_var.set(
                 self.auto_lift_suspensions_on_end_date
+            )
+        if hasattr(self, "_order_message_by_date_var"):
+            self._order_message_by_date_var.set(
+                self.order_message_by_date
             )
         self.schedule_tab.refresh_acolyte_list()
         self.schedule_tab.load_slots_from_data(adapt_dates=True)
@@ -169,6 +181,7 @@ class App:
             self.include_activity_table_per_acolyte,
             self.auto_lift_suspensions_on_end_date,
             self.current_cycle_name,
+            self.order_message_by_date,
         )
 
     def _on_toggle_include_suspended_general_event(self):
@@ -186,6 +199,12 @@ class App:
     def _on_toggle_auto_lift_suspensions(self):
         self.auto_lift_suspensions_on_end_date = bool(
             self._auto_lift_suspensions_var.get()
+        )
+        self.save()
+
+    def _on_toggle_order_message_by_date(self):
+        self.order_message_by_date = bool(
+            self._order_message_by_date_var.get()
         )
         self.save()
 
@@ -228,6 +247,7 @@ class App:
                 self.include_activity_table_per_acolyte,
                 self.auto_lift_suspensions_on_end_date,
                 self.current_cycle_name,
+                self.order_message_by_date,
             )
             messagebox.showinfo("Sucesso", f"Dados exportados com sucesso para:\n{path}")
         except Exception as e:
@@ -261,6 +281,7 @@ class App:
                 include_activity_table_per_acolyte,
                 auto_lift_suspensions_on_end_date,
                 current_cycle_name,
+                order_message_by_date,
             ) = import_from_file(path)
             self.acolytes = acolytes
             self.schedule_slots = schedule_slots
@@ -274,6 +295,7 @@ class App:
             self.include_activity_table_per_acolyte = include_activity_table_per_acolyte
             self.auto_lift_suspensions_on_end_date = auto_lift_suspensions_on_end_date
             self.current_cycle_name = current_cycle_name
+            self.order_message_by_date = order_message_by_date
             self.save()
             self._load_data()
             messagebox.showinfo(

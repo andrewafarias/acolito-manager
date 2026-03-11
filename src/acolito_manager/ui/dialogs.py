@@ -4,7 +4,7 @@ import uuid
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-from ..models import BonusMovement, StandardSlot, ScheduleSlot, Unavailability
+from ..models import BonusMovement, StandardSlot, ScheduleSlot, Unavailability, GeneralEvent
 from ..utils import (
     WEEKDAYS_PT,
     detect_weekday,
@@ -704,11 +704,11 @@ class AddMultipleAcolytesDialog(BaseDialog):
 
 
 class StandardSlotsDialog(BaseDialog):
-    """Diálogo para gerenciar horários padrão."""
+    """Diálogo para gerenciar escala padrão."""
 
     def __init__(self, parent, app):
         self.app = app
-        super().__init__(parent, "Gerenciar Horários Padrão")
+        super().__init__(parent, "Gerenciar Escala Padrão")
         self._build()
         self.wait_window()
 
@@ -718,7 +718,7 @@ class StandardSlotsDialog(BaseDialog):
 
         ttk.Label(
             frame,
-            text="Horários padrão são adicionados automaticamente à escala.",
+            text="Itens da escala padrão podem ser horários normais ou atividades e são adicionados automaticamente à escala atual.",
             foreground="gray",
         ).pack(anchor="w", pady=(0, 6))
 
@@ -732,7 +732,7 @@ class StandardSlotsDialog(BaseDialog):
 
         self._refresh_list()
 
-        add_frame = ttk.LabelFrame(frame, text="Adicionar Horário Padrão", padding=8)
+        add_frame = ttk.LabelFrame(frame, text="Adicionar Item da Escala Padrão", padding=8)
         add_frame.pack(fill=tk.X, pady=6)
 
         ttk.Label(add_frame, text="Dia:").grid(row=0, column=0, sticky="w", pady=2)
@@ -754,9 +754,27 @@ class StandardSlotsDialog(BaseDialog):
             row=2, column=1, padx=4, pady=2, sticky="w"
         )
 
-        ttk.Button(add_frame, text="➕ Adicionar", command=self._add_slot).grid(
-            row=3, column=0, columnspan=2, pady=6
+        self._is_activity_var = tk.BooleanVar(value=False)
+        ttk.Checkbutton(
+            add_frame,
+            text="É atividade",
+            variable=self._is_activity_var,
+            command=self._toggle_activity_options,
+        ).grid(row=3, column=0, columnspan=2, sticky="w", pady=2)
+
+        self._include_in_message_var = tk.BooleanVar(value=False)
+        self._include_in_message_check = ttk.Checkbutton(
+            add_frame,
+            text="Incluir na mensagem",
+            variable=self._include_in_message_var,
         )
+        self._include_in_message_check.grid(row=4, column=0, columnspan=2, sticky="w", pady=2)
+
+        ttk.Button(add_frame, text="➕ Adicionar", command=self._add_slot).grid(
+            row=5, column=0, columnspan=2, pady=6
+        )
+
+        self._toggle_activity_options()
 
         btn_row = ttk.Frame(frame)
         btn_row.pack(fill=tk.X, pady=4)
@@ -771,7 +789,17 @@ class StandardSlotsDialog(BaseDialog):
     def _refresh_list(self):
         self.listbox.delete(0, tk.END)
         for ss in self.app.standard_slots:
-            self.listbox.insert(tk.END, f"{ss.day} {ss.time} - {ss.description}")
+            type_label = "Atividade" if getattr(ss, "is_activity", False) else "Horário"
+            extra = " [mensagem]" if getattr(ss, "is_activity", False) and getattr(ss, "include_in_message", False) else ""
+            time_text = ss.time or "sem hora"
+            self.listbox.insert(tk.END, f"{type_label}: {ss.day} {time_text} - {ss.description}{extra}")
+
+    def _toggle_activity_options(self):
+        if self._is_activity_var.get():
+            self._include_in_message_check.state(["!disabled"])
+        else:
+            self._include_in_message_var.set(False)
+            self._include_in_message_check.state(["disabled"])
 
     def _add_slot(self):
         day = self._day_var.get().strip()
@@ -780,7 +808,14 @@ class StandardSlotsDialog(BaseDialog):
         if not day:
             messagebox.showwarning("Aviso", "Selecione o dia da semana.", parent=self)
             return
-        ss = StandardSlot(id=str(uuid.uuid4()), day=day, time=time, description=desc)
+        ss = StandardSlot(
+            id=str(uuid.uuid4()),
+            day=day,
+            time=time,
+            description=desc,
+            is_activity=self._is_activity_var.get(),
+            include_in_message=self._include_in_message_var.get(),
+        )
         self.app.standard_slots.append(ss)
         self.app.save()
         self._refresh_list()
@@ -788,7 +823,7 @@ class StandardSlotsDialog(BaseDialog):
     def _remove_slot(self):
         sel = self.listbox.curselection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione um horário padrão.", parent=self)
+            messagebox.showinfo("Aviso", "Selecione um item da escala padrão.", parent=self)
             return
         idx = sel[0]
         if idx < len(self.app.standard_slots):
@@ -798,20 +833,37 @@ class StandardSlotsDialog(BaseDialog):
 
     def _add_to_schedule(self):
         if not self.app.standard_slots:
-            messagebox.showinfo("Aviso", "Nenhum horário padrão cadastrado.", parent=self)
+            messagebox.showinfo("Aviso", "Nenhum item da escala padrão cadastrado.", parent=self)
             return
+        added_schedule_items = 0
+        added_activity_items = 0
         for ss in self.app.standard_slots:
             auto_date = next_occurrence_of_day(ss.day)
-            slot = ScheduleSlot(
-                id=str(uuid.uuid4()), date=auto_date, day=ss.day,
-                time=ss.time, description=ss.description,
-            )
-            self.app.schedule_slots.append(slot)
+            if getattr(ss, "is_activity", False):
+                event = GeneralEvent(
+                    id=str(uuid.uuid4()),
+                    name=ss.description,
+                    date=auto_date,
+                    time=ss.time,
+                    include_in_message=getattr(ss, "include_in_message", False),
+                    order_index=self.app.schedule_tab.next_card_order_index(),
+                )
+                self.app.general_events.append(event)
+                added_activity_items += 1
+            else:
+                slot = ScheduleSlot(
+                    id=str(uuid.uuid4()), date=auto_date, day=ss.day,
+                    time=ss.time, description=ss.description,
+                    order_index=self.app.schedule_tab.next_card_order_index(),
+                )
+                self.app.schedule_slots.append(slot)
+                added_schedule_items += 1
         self.app.schedule_tab.load_slots_from_data()
+        self.app.events_tab.refresh_list()
         self.app.save()
         messagebox.showinfo(
             "Concluído",
-            f"{len(self.app.standard_slots)} horário(s) padrão adicionado(s) à escala.\n"
+            f"{added_schedule_items} horário(s) e {added_activity_items} atividade(s) da escala padrão adicionados à escala atual.\n"
             "Datas preenchidas automaticamente.",
             parent=self,
         )
@@ -1008,6 +1060,49 @@ class EditGeneralEventExcludedDialog(BaseDialog):
             if locked or var.get():
                 selected_ids.append(ac.id)
         self.result = selected_ids
+        self.destroy()
+
+
+class EditEventParticipantsDialog(BaseDialog):
+    """Edita quais acólitos estão incluídos em uma atividade."""
+
+    def __init__(self, parent, acolytes, included_ids):
+        self._acolytes = acolytes
+        self._included_ids = set(included_ids or [])
+        super().__init__(parent, "Editar Participantes - Atividade")
+        self._build()
+        self.wait_window()
+
+    def _build(self):
+        frame = ttk.Frame(self, padding=16)
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        ttk.Label(
+            frame,
+            text="Marque os acólitos que devem participar desta atividade:",
+            justify="left",
+        ).pack(anchor="w", pady=(0, 8))
+
+        list_frame = ttk.Frame(frame)
+        list_frame.pack(fill=tk.BOTH, expand=True)
+
+        self._vars = []
+        for ac in self._acolytes:
+            default_checked = ac.id in self._included_ids
+            var = tk.BooleanVar(value=default_checked)
+            self._vars.append((ac, var))
+            suffix = " (susp.)" if getattr(ac, "is_suspended", False) else ""
+            ttk.Checkbutton(list_frame, text=f"{ac.name}{suffix}", variable=var).pack(
+                anchor="w", padx=4, pady=1
+            )
+
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack(pady=10)
+        ttk.Button(btn_frame, text="Salvar", command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+
+    def _ok(self):
+        self.result = [ac.id for ac, var in self._vars if var.get()]
         self.destroy()
 
 

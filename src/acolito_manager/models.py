@@ -185,6 +185,7 @@ class EventHistoryEntry:
 class Acolyte:
     name: str
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    internal_notes: str = ""
     times_scheduled: int = 0
     absences: List[Absence] = field(default_factory=list)
     suspensions: List[Suspension] = field(default_factory=list)
@@ -214,6 +215,7 @@ class Acolyte:
         return {
             "id": self.id,
             "name": self.name,
+            "internal_notes": self.internal_notes,
             "times_scheduled": self.times_scheduled,
             "absences": [a.to_dict() for a in self.absences],
             "suspensions": [s.to_dict() for s in self.suspensions],
@@ -230,6 +232,7 @@ class Acolyte:
         return cls(
             id=data["id"],
             name=data["name"],
+            internal_notes=data.get("internal_notes", ""),
             times_scheduled=data.get("times_scheduled", 0),
             absences=[Absence.from_dict(a) for a in data.get("absences", [])],
             suspensions=[Suspension.from_dict(s) for s in data.get("suspensions", [])],
@@ -255,6 +258,7 @@ class ScheduleSlot:
     include_as_schedule: bool = True
     excluded_acolyte_ids: List[str] = field(default_factory=list)
     suspended_excluded_acolyte_ids: List[str] = field(default_factory=list)
+    order_index: int = 0
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
 
     def to_dict(self) -> dict:
@@ -271,6 +275,7 @@ class ScheduleSlot:
             "include_as_schedule": self.include_as_schedule,
             "excluded_acolyte_ids": self.excluded_acolyte_ids,
             "suspended_excluded_acolyte_ids": self.suspended_excluded_acolyte_ids,
+            "order_index": self.order_index,
         }
 
     @classmethod
@@ -288,6 +293,7 @@ class ScheduleSlot:
             include_as_schedule=data.get("include_as_schedule", True),
             excluded_acolyte_ids=data.get("excluded_acolyte_ids", []),
             suspended_excluded_acolyte_ids=data.get("suspended_excluded_acolyte_ids", []),
+            order_index=data.get("order_index", 0),
         )
 
 
@@ -296,7 +302,9 @@ class GeneralEvent:
     name: str
     date: str
     time: str = ""
+    include_in_message: bool = False
     excluded_acolyte_ids: List[str] = field(default_factory=list)
+    order_index: int = 0
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
 
     def to_dict(self) -> dict:
@@ -305,7 +313,9 @@ class GeneralEvent:
             "name": self.name,
             "date": self.date,
             "time": self.time,
+            "include_in_message": self.include_in_message,
             "excluded_acolyte_ids": self.excluded_acolyte_ids,
+            "order_index": self.order_index,
         }
 
     @classmethod
@@ -315,7 +325,9 @@ class GeneralEvent:
             name=data["name"],
             date=data["date"],
             time=data.get("time", ""),
+            include_in_message=data.get("include_in_message", False),
             excluded_acolyte_ids=data.get("excluded_acolyte_ids", []),
+            order_index=data.get("order_index", 0),
         )
 
 
@@ -433,6 +445,8 @@ class StandardSlot:
     day: str
     time: str
     description: str
+    is_activity: bool = False
+    include_in_message: bool = False
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
 
     def to_dict(self) -> dict:
@@ -441,6 +455,8 @@ class StandardSlot:
             "day": self.day,
             "time": self.time,
             "description": self.description,
+            "is_activity": self.is_activity,
+            "include_in_message": self.include_in_message,
         }
 
     @classmethod
@@ -450,6 +466,8 @@ class StandardSlot:
             day=data["day"],
             time=data["time"],
             description=data.get("description", ""),
+            is_activity=data.get("is_activity", False),
+            include_in_message=data.get("include_in_message", False),
         )
 
 
