@@ -7,7 +7,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from datetime import datetime
 
-from ..models import ScheduleSlot, Activity, Acolyte, CicloHistoryEntry
+from ..models import ScheduleSlot, Activity, Acolyte
 from ..report_generator import generate_report
 from .dialogs import CloseCicloDialog
 
@@ -803,7 +803,7 @@ class HistoryTab(ttk.Frame):
             return
 
         try:
-            from ..models import Acolyte, FinalizedActivityBatchEntry, FinalizedActivityBatch, GeneratedSchedule
+            from ..models import Acolyte, FinalizedActivityBatch, GeneratedSchedule
             acolytes = sorted(
                 [Acolyte.from_dict(a) for a in ch.acolytes_snapshot],
                 key=lambda a: a.name.lower()
