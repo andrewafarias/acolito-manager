@@ -18,7 +18,7 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-from .models import Acolyte, FinalizedEventBatchEntry, GeneratedSchedule
+from .models import Acolyte, FinalizedActivityBatchEntry, GeneratedSchedule
 
 
 def _sanitize_anchor(name: str) -> str:
@@ -126,7 +126,7 @@ def _generated_schedule_general_map(generated_schedule: GeneratedSchedule) -> Di
     current_key = None
     current_description = ""
     for line in lines:
-        if not line or line == "*ESCALA DA SEMANA*":
+        if not line or line in {"*ESCALA DA SEMANA*", "*CONVOCAÇÃO DA SEMANA*"}:
             continue
 
         if line.startswith("*") and line.endswith(":*"):
@@ -158,7 +158,7 @@ def _generated_schedule_general_map(generated_schedule: GeneratedSchedule) -> Di
 def generate_report(
     acolytes: List[Acolyte],
     output_path: str,
-    registered_events: Optional[List[FinalizedEventBatchEntry]] = None,
+    registered_events: Optional[List[FinalizedActivityBatchEntry]] = None,
     generated_schedules: Optional[List[GeneratedSchedule]] = None,
     include_activity_table_per_acolyte: bool = True,
     cycle_name: str = "",
@@ -297,7 +297,7 @@ def generate_report(
     story.append(summary_table)
 
     # =====================================================================
-    # TABELA DE ESCALAS GERADAS: cards de todos os lotes gerados
+    # TABELA DE CONVOCAÇÕES GERADAS: cards de todos os lotes gerados
     # =====================================================================
     story.append(Spacer(1, 0.2 * cm))
     story.append(Paragraph("Escalas Geradas", style_section))
@@ -375,7 +375,7 @@ def generate_report(
         )
         story.append(schedule_table)
     else:
-        story.append(Paragraph("Nenhuma escala gerada encontrada.", style_body))
+        story.append(Paragraph("Nenhuma convocação gerada encontrada.", style_body))
 
     # =====================================================================
     # SEÇÃO DE ATIVIDADES: Tabela com todos os eventos registrados
@@ -443,6 +443,7 @@ def generate_report(
                 width="100%",
                 thickness=1,
                 color=colors.HexColor("#4a4a8a"),
+                spaceBefore=0.15 * cm,
                 spaceAfter=0.15 * cm,
             ))
 
@@ -459,14 +460,15 @@ def generate_report(
         status_text = (
             f"Escalas: {acolyte.times_scheduled}     "
             f"Faltas: {acolyte.absence_count}     "
+            f"Suspensões: {acolyte.suspension_count}     "
             f"Suspenso: {suspension_text}     "
             f"Bônus: {acolyte.bonus_count}"
         )
         story.append(_StatusPanel(status_text, acolyte_content_width))
 
         # --- Histórico de Escalas ---
-        story.append(Paragraph("Escalas", style_section))
         if acolyte.schedule_history:
+            story.append(Paragraph("Escalas", style_section))
             header = [["Data", "Dia", "Horário", "Descrição", "Faltou"]]
             rows = [
                 [e.date, e.day, e.time, e.description or "-", "Sim" if e.missed else "Não"]
@@ -477,27 +479,22 @@ def generate_report(
                 [2.2 * cm, 3.0 * cm, 2.2 * cm, acolyte_content_width - 9.4 * cm, 2.0 * cm],
             )
             story.append(table)
-        else:
-            story.append(Paragraph("Nenhuma escala registrada.", style_body))
 
         # --- Atividades ---
-        if include_activity_table_per_acolyte:
+        if include_activity_table_per_acolyte and acolyte.event_history:
             story.append(Paragraph("Atividades", style_section))
-            if acolyte.event_history:
-                header = [["Nome da Atividade", "Data", "Horário", "Faltou"]]
-                rows = [[e.name, e.date, e.time or "-", "Sim" if e.missed else "Não"] for e in acolyte.event_history]
-                table = _build_table(
-                    header + rows,
-                    [acolyte_content_width - 8 * cm, 2.5 * cm, 2.5 * cm, 3.0 * cm],
-                )
-                story.append(table)
-            else:
-                story.append(Paragraph("Nenhuma atividade registrada.", style_body))
+            header = [["Nome da Atividade", "Data", "Horário", "Faltou"]]
+            rows = [[e.name, e.date, e.time or "-", "Sim" if e.missed else "Não"] for e in acolyte.event_history]
+            table = _build_table(
+                header + rows,
+                [acolyte_content_width - 8 * cm, 2.5 * cm, 2.5 * cm, 3.0 * cm],
+            )
+            story.append(table)
 
 
         # --- Faltas ---
-        story.append(Paragraph("Faltas", style_section))
         if acolyte.absences:
+            story.append(Paragraph("Faltas", style_section))
             header = [["Data", "Descrição", "Contada"]]
             rows = [
                 [a.date, a.description or "-", "Não" if a.is_symbolic else "Sim"]
@@ -508,11 +505,9 @@ def generate_report(
                 [2.5 * cm, acolyte_content_width - 5 * cm, 2.5 * cm],
             )
             story.append(table)
-        else:
-            story.append(Paragraph("Nenhuma falta registrada.", style_body))
         # --- Suspensões ---
-        story.append(Paragraph("Suspensões", style_section))
         if acolyte.suspensions:
+            story.append(Paragraph("Suspensões", style_section))
             header = [["Motivo", "Início", "Fim", "Ativa"]]
             rows = [
                 [
@@ -528,12 +523,10 @@ def generate_report(
                 [acolyte_content_width - 8 * cm, 2.5 * cm, 3 * cm, 2.5 * cm],
             )
             story.append(table)
-        else:
-            story.append(Paragraph("Nenhuma suspensão registrada.", style_body))
 
         # --- Movimentação de Bônus ---
-        story.append(Paragraph("Movimentação de Bônus", style_section))
         if acolyte.bonus_movements:
+            story.append(Paragraph("Movimentação de Bônus", style_section))
             header = [["Tipo", "Quantidade", "Descrição", "Data"]]
             rows = [
                 [
@@ -549,8 +542,6 @@ def generate_report(
                 [2.5 * cm, 2.5 * cm, acolyte_content_width - 8 * cm, 3 * cm],
             )
             story.append(table)
-        else:
-            story.append(Paragraph("Nenhuma movimentação de bônus registrada.", style_body))
 
     doc.build(story)
     return output_path

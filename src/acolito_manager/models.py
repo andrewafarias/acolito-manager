@@ -184,7 +184,7 @@ class ScheduleHistoryEntry:
 
 
 @dataclass
-class EventHistoryEntry:
+class ActivityHistoryEntry:
     event_id: str
     name: str
     date: str
@@ -201,7 +201,7 @@ class EventHistoryEntry:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "EventHistoryEntry":
+    def from_dict(cls, data: dict) -> "ActivityHistoryEntry":
         return cls(
             event_id=data["event_id"],
             name=data["name"],
@@ -223,7 +223,7 @@ class Acolyte:
     bonus_count: int = 0
     bonus_movements: List[BonusMovement] = field(default_factory=list)
     schedule_history: List[ScheduleHistoryEntry] = field(default_factory=list)
-    event_history: List[EventHistoryEntry] = field(default_factory=list)
+    event_history: List[ActivityHistoryEntry] = field(default_factory=list)
     unavailabilities: List[Unavailability] = field(default_factory=list)
     temporary_unavailabilities: List[TemporaryUnavailability] = field(default_factory=list)
     birthdate: str = ""  # DD/MM/YYYY
@@ -274,7 +274,7 @@ class Acolyte:
             bonus_count=data.get("bonus_count", 0),
             bonus_movements=[BonusMovement.from_dict(b) for b in data.get("bonus_movements", [])],
             schedule_history=[ScheduleHistoryEntry.from_dict(sh) for sh in data.get("schedule_history", [])],
-            event_history=[EventHistoryEntry.from_dict(eh) for eh in data.get("event_history", [])],
+            event_history=[ActivityHistoryEntry.from_dict(eh) for eh in data.get("event_history", [])],
             unavailabilities=[Unavailability.from_dict(u) for u in data.get("unavailabilities", [])],
             temporary_unavailabilities=[
                 TemporaryUnavailability.from_dict(t)
@@ -286,7 +286,7 @@ class Acolyte:
 
 @dataclass
 class ScheduleSlot:
-    """Draft planning card created in 'Criar Escala'.
+    """Draft planning card created in 'Convocação'.
 
     This is not a finalized/realized schedule occurrence yet. It must only be
     used as planning input and should not be treated as attendance/absence
@@ -341,8 +341,8 @@ class ScheduleSlot:
 
 
 @dataclass
-class GeneralEvent:
-    """Draft planning card created in 'Criar Escala'.
+class Activity:
+    """Draft planning card created in 'Convocação'.
 
     This is not a finalized/realized activity occurrence yet. It must only be
     used as planning input and should not be treated as attendance/absence
@@ -367,7 +367,7 @@ class GeneralEvent:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "GeneralEvent":
+    def from_dict(cls, data: dict) -> "Activity":
         return cls(
             id=data["id"],
             name=data["name"],
@@ -387,6 +387,11 @@ class GeneratedScheduleSlotSnapshot:
     description: str
     acolyte_ids: List[str]
     is_general_event: bool = False
+    general_event_name: str = ""
+    include_as_activity: bool = True
+    include_as_schedule: bool = True
+    excluded_acolyte_ids: List[str] = field(default_factory=list)
+    suspended_excluded_acolyte_ids: List[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -397,6 +402,11 @@ class GeneratedScheduleSlotSnapshot:
             "description": self.description,
             "acolyte_ids": self.acolyte_ids,
             "is_general_event": self.is_general_event,
+            "general_event_name": self.general_event_name,
+            "include_as_activity": self.include_as_activity,
+            "include_as_schedule": self.include_as_schedule,
+            "excluded_acolyte_ids": self.excluded_acolyte_ids,
+            "suspended_excluded_acolyte_ids": self.suspended_excluded_acolyte_ids,
         }
 
     @classmethod
@@ -409,6 +419,11 @@ class GeneratedScheduleSlotSnapshot:
             description=data.get("description", ""),
             acolyte_ids=data.get("acolyte_ids", []),
             is_general_event=data.get("is_general_event", False),
+            general_event_name=data.get("general_event_name", ""),
+            include_as_activity=data.get("include_as_activity", True),
+            include_as_schedule=data.get("include_as_schedule", True),
+            excluded_acolyte_ids=data.get("excluded_acolyte_ids", []),
+            suspended_excluded_acolyte_ids=data.get("suspended_excluded_acolyte_ids", []),
         )
 
 
@@ -418,7 +433,7 @@ class GeneratedSchedule:
     generated_at: str
     schedule_text: str
     slots: List[GeneratedScheduleSlotSnapshot] = field(default_factory=list)
-    batch_id: Optional[str] = None  # ID of the linked FinalizedEventBatch, if any
+    batch_id: Optional[str] = None  # ID of the linked FinalizedActivityBatch, if any
 
     def to_dict(self) -> dict:
         return {
@@ -441,12 +456,16 @@ class GeneratedSchedule:
 
 
 @dataclass
-class FinalizedEventBatchEntry:
+class FinalizedActivityBatchEntry:
     event_id: str
     name: str
     date: str
     time: str
     participating_acolyte_ids: List[str] = field(default_factory=list)
+    source_type: str = ""  # "general_slot" | "activity" | ""
+    source_ref_id: str = ""
+    include_in_message: bool = False
+    excluded_acolyte_ids: List[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -455,24 +474,32 @@ class FinalizedEventBatchEntry:
             "date": self.date,
             "time": self.time,
             "participating_acolyte_ids": self.participating_acolyte_ids,
+            "source_type": self.source_type,
+            "source_ref_id": self.source_ref_id,
+            "include_in_message": self.include_in_message,
+            "excluded_acolyte_ids": self.excluded_acolyte_ids,
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "FinalizedEventBatchEntry":
+    def from_dict(cls, data: dict) -> "FinalizedActivityBatchEntry":
         return cls(
             event_id=data["event_id"],
             name=data["name"],
             date=data["date"],
             time=data.get("time", ""),
             participating_acolyte_ids=data.get("participating_acolyte_ids", []),
+            source_type=data.get("source_type", ""),
+            source_ref_id=data.get("source_ref_id", ""),
+            include_in_message=data.get("include_in_message", False),
+            excluded_acolyte_ids=data.get("excluded_acolyte_ids", []),
         )
 
 
 @dataclass
-class FinalizedEventBatch:
+class FinalizedActivityBatch:
     id: str
     finalized_at: str
-    entries: List[FinalizedEventBatchEntry] = field(default_factory=list)
+    entries: List[FinalizedActivityBatchEntry] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -482,11 +509,11 @@ class FinalizedEventBatch:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "FinalizedEventBatch":
+    def from_dict(cls, data: dict) -> "FinalizedActivityBatch":
         return cls(
             id=data["id"],
             finalized_at=data["finalized_at"],
-            entries=[FinalizedEventBatchEntry.from_dict(e) for e in data.get("entries", [])],
+            entries=[FinalizedActivityBatchEntry.from_dict(e) for e in data.get("entries", [])],
         )
 
 

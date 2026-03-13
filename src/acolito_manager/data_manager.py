@@ -8,9 +8,9 @@ from pathlib import Path
 from .models import (
     Acolyte,
     ScheduleSlot,
-    GeneralEvent,
+    Activity,
     GeneratedSchedule,
-    FinalizedEventBatch,
+    FinalizedActivityBatch,
     StandardSlot,
     CicloHistoryEntry,
 )
@@ -44,9 +44,9 @@ def default_birthday_settings() -> dict:
 def save_data(
     acolytes: List[Acolyte],
     schedule_slots: List[ScheduleSlot],
-    general_events: List[GeneralEvent],
+    general_events: List[Activity],
     generated_schedules: List[GeneratedSchedule] = None,
-    finalized_event_batches: List[FinalizedEventBatch] = None,
+    finalized_event_batches: List[FinalizedActivityBatch] = None,
     standard_slots: List[StandardSlot] = None,
     ciclo_history: List[CicloHistoryEntry] = None,
     custom_common_times: List[str] = None,
@@ -86,9 +86,9 @@ def load_data():
             data = json.load(f)
         acolytes = [Acolyte.from_dict(a) for a in data.get("acolytes", [])]
         schedule_slots = [ScheduleSlot.from_dict(s) for s in data.get("schedule_slots", [])]
-        general_events = [GeneralEvent.from_dict(e) for e in data.get("general_events", [])]
+        general_events = [Activity.from_dict(e) for e in data.get("general_events", [])]
         generated_schedules = [GeneratedSchedule.from_dict(gs) for gs in data.get("generated_schedules", [])]
-        finalized_event_batches = [FinalizedEventBatch.from_dict(fb) for fb in data.get("finalized_event_batches", [])]
+        finalized_event_batches = [FinalizedActivityBatch.from_dict(fb) for fb in data.get("finalized_event_batches", [])]
         standard_slots = [StandardSlot.from_dict(ss) for ss in data.get("standard_slots", [])]
         ciclo_history = [CicloHistoryEntry.from_dict(ch) for ch in data.get("ciclo_history", [])]
         custom_common_times = data.get("custom_common_times", list(DEFAULT_COMMON_TIMES))
@@ -120,10 +120,10 @@ def load_data():
 def export_to_file(
     acolytes: List[Acolyte],
     schedule_slots: List[ScheduleSlot],
-    general_events: List[GeneralEvent],
+    general_events: List[Activity],
     path: str,
     generated_schedules: List[GeneratedSchedule] = None,
-    finalized_event_batches: List[FinalizedEventBatch] = None,
+    finalized_event_batches: List[FinalizedActivityBatch] = None,
     standard_slots: List[StandardSlot] = None,
     ciclo_history: List[CicloHistoryEntry] = None,
     custom_common_times: List[str] = None,
@@ -159,9 +159,9 @@ def import_from_file(path: str):
         data = json.load(f)
     acolytes = [Acolyte.from_dict(a) for a in data.get("acolytes", [])]
     schedule_slots = [ScheduleSlot.from_dict(s) for s in data.get("schedule_slots", [])]
-    general_events = [GeneralEvent.from_dict(e) for e in data.get("general_events", [])]
+    general_events = [Activity.from_dict(e) for e in data.get("general_events", [])]
     generated_schedules = [GeneratedSchedule.from_dict(gs) for gs in data.get("generated_schedules", [])]
-    finalized_event_batches = [FinalizedEventBatch.from_dict(fb) for fb in data.get("finalized_event_batches", [])]
+    finalized_event_batches = [FinalizedActivityBatch.from_dict(fb) for fb in data.get("finalized_event_batches", [])]
     standard_slots = [StandardSlot.from_dict(ss) for ss in data.get("standard_slots", [])]
     ciclo_history = [CicloHistoryEntry.from_dict(ch) for ch in data.get("ciclo_history", [])]
     custom_common_times = data.get("custom_common_times", list(DEFAULT_COMMON_TIMES))

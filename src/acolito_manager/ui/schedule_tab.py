@@ -1,4 +1,4 @@
-"""Aba de criação de escalas e widget de slot de escala."""
+"""Aba de convocação e widget de escala."""
 
 import uuid
 import tkinter as tk
@@ -10,11 +10,11 @@ from ..models import (
     Acolyte,
     ScheduleSlot,
     ScheduleHistoryEntry,
-    EventHistoryEntry,
+    ActivityHistoryEntry,
     GeneratedScheduleSlotSnapshot,
     GeneratedSchedule,
-    FinalizedEventBatch,
-    FinalizedEventBatchEntry,
+    FinalizedActivityBatch,
+    FinalizedActivityBatchEntry,
 )
 from ..utils import (
     WEEKDAYS_PT,
@@ -30,7 +30,7 @@ from .dialogs import (
     FinalizeScheduleDialog,
     EditGeneralEventExcludedDialog,
 )
-from .events_tab import EventsTab
+from .events_tab import ActivitiesTab
 
 
 def _time_in_interval(time_str: str, start_time: str, end_time: str) -> bool:
@@ -129,7 +129,7 @@ class ScheduleSlotCard(ttk.LabelFrame):
         title = (
             f"Escala Geral #{slot.id[:6]}"
             if slot.is_general_event
-            else f"Horário #{slot.id[:6]}"
+            else f"Escala #{slot.id[:6]}"
         )
         super().__init__(parent, text=title, padding=6, **kwargs)
         self.slot = slot
@@ -186,7 +186,7 @@ class ScheduleSlotCard(ttk.LabelFrame):
         if not self.slot.is_general_event:
             ttk.Button(
                 row4,
-                text="➕ Adicionar Acólito(s) Selecionado(s)",
+                text="➕ Adicionar Acólitos Selecionados",
                 command=self._add_selected_acolytes,
             ).pack(side=tk.LEFT)
 
@@ -586,7 +586,7 @@ class ScheduleSlotCard(ttk.LabelFrame):
 
 
 class ScheduleTab(ttk.Frame):
-    """Aba de criação de escalas."""
+    """Aba de convocação."""
 
     def __init__(self, parent, app):
         super().__init__(parent)
@@ -609,13 +609,13 @@ class ScheduleTab(ttk.Frame):
 
         header = ttk.Frame(left)
         header.pack(fill=tk.X, pady=4)
-        ttk.Label(header, text="Criar Nova Escala", font=("TkDefaultFont", 12, "bold")).pack(
+        ttk.Label(header, text="Convocação", font=("TkDefaultFont", 12, "bold")).pack(
             side=tk.LEFT
         )
 
         btn_row = ttk.Frame(left)
         btn_row.pack(fill=tk.X, pady=2)
-        ttk.Button(btn_row, text="➕ Adicionar Horário", command=self._add_slot).pack(
+        ttk.Button(btn_row, text="➕ Adicionar Escala", command=self._add_slot).pack(
             side=tk.LEFT, padx=4
         )
         ttk.Button(btn_row, text="✨ Adicionar Atividade", command=self._add_event).pack(
@@ -624,10 +624,10 @@ class ScheduleTab(ttk.Frame):
         ttk.Button(btn_row, text="⛪ Escala Geral", command=self._add_general_event_slot).pack(
             side=tk.LEFT, padx=4
         )
-        ttk.Button(btn_row, text="📋 Escala Padrão", command=self._manage_standard_slots).pack(
+        ttk.Button(btn_row, text="📋 Convocação Padrão", command=self._manage_standard_slots).pack(
             side=tk.LEFT, padx=4
         )
-        ttk.Button(btn_row, text="🗑️ Limpar Escala", command=self._clear_schedule).pack(
+        ttk.Button(btn_row, text="🗑️ Limpar Convocação", command=self._clear_schedule).pack(
             side=tk.LEFT, padx=4
         )
 
@@ -646,11 +646,10 @@ class ScheduleTab(ttk.Frame):
         self.cards_frame = ttk.Frame(self.slots_frame)
         self.cards_frame.pack(fill=tk.X, expand=True)
 
-        self.events_tab = EventsTab(self.app, self)
+        self.events_tab = ActivitiesTab(self.app, self)
 
-        def on_configure(event):
-            canvas.configure(scrollregion=canvas.bbox("all"))
-            canvas.itemconfig(self.slots_window, width=canvas.winfo_width())
+        def on_configure(event=None):
+            self._sync_canvas_scrollregion()
 
         self.slots_frame.bind("<Configure>", on_configure)
         canvas.bind("<Configure>", on_configure)
@@ -681,7 +680,7 @@ class ScheduleTab(ttk.Frame):
 
         ttk.Button(
             left,
-            text="✅ Finalizar Escala",
+            text="✅ Finalizar Convocação",
             command=self._finalize_schedule,
             style="Accent.TButton",
         ).pack(fill=tk.X, pady=8, padx=4)
@@ -794,6 +793,32 @@ class ScheduleTab(ttk.Frame):
             rendered_order.append(self._card_token(item_type, item.id))
 
         self._rendered_card_order = rendered_order
+        # Geometry updates are async; sync scroll bounds after cards settle.
+        self.after_idle(self._sync_canvas_scrollregion)
+
+    def _sync_canvas_scrollregion(self):
+        if not hasattr(self, "canvas"):
+            return
+
+        self.update_idletasks()
+        self.canvas.coords(self.slots_window, 0, 0)
+        self.canvas.itemconfig(self.slots_window, width=self.canvas.winfo_width())
+
+        bbox = self.canvas.bbox(self.slots_window)
+        if bbox:
+            _, _, x2, y2 = bbox
+            region_w = max(self.canvas.winfo_width(), x2)
+            region_h = max(self.canvas.winfo_height(), y2)
+            # Always keep scroll origin at (0, 0) to avoid phantom empty space.
+            self.canvas.configure(scrollregion=(0, 0, region_w, region_h))
+        else:
+            self.canvas.configure(
+                scrollregion=(0, 0, self.canvas.winfo_width(), self.canvas.winfo_height())
+            )
+
+        first, _ = self.canvas.yview()
+        if first < 0:
+            self.canvas.yview_moveto(0)
 
     def _card_token(self, item_type: str, item_id: str) -> str:
         return f"{item_type}:{item_id}"
@@ -837,7 +862,7 @@ class ScheduleTab(ttk.Frame):
         self.app.save()
 
     def _add_event(self):
-        self.events_tab.add_event()
+        self.events_tab.add_activity()
 
     def _add_general_event_slot(self):
         dlg = AddEscalaGeralDialog(self.app.root)
@@ -897,7 +922,7 @@ class ScheduleTab(ttk.Frame):
     def _clear_schedule(self):
         if not self.app.schedule_slots and not self.app.general_events:
             return
-        if not messagebox.askyesno("Confirmar", "Deseja limpar todos os cards da escala?"):
+        if not messagebox.askyesno("Confirmar", "Deseja limpar todos os cards da convocação?"):
             return
         self.app.schedule_slots.clear()
         self.app.general_events.clear()
@@ -908,7 +933,7 @@ class ScheduleTab(ttk.Frame):
         StandardSlotsDialog(self.app.root, self.app)
         self.refresh_acolyte_list()
 
-    def load_slots_from_data(self, adapt_dates: bool = False):
+    def load_slots_from_data(self, adapt_dates: bool = False, scroll_to_top: bool = False):
         """Reconstrói os cards a partir dos dados carregados.
 
         Args:
@@ -921,10 +946,13 @@ class ScheduleTab(ttk.Frame):
                 if slot.day:
                     slot.date = next_occurrence_of_day(slot.day)
         self.refresh_cards()
+        if scroll_to_top:
+            self.update_idletasks()
+            self.canvas.yview_moveto(0)
 
     def _finalize_schedule(self):
         if not self.app.schedule_slots and not self.app.general_events:
-            messagebox.showinfo("Aviso", "Nenhum horário ou atividade criado.")
+            messagebox.showinfo("Aviso", "Nenhuma escala ou atividade criada.")
             return
 
         # Auto-populate general event slots that have empty acolyte_ids (reused after previous finalization)
@@ -935,6 +963,7 @@ class ScheduleTab(ttk.Frame):
         lines = ["*ESCALA DA SEMANA*\n"]
         general_event_slots = []
         message_items = []
+        finalized_at = datetime.now().strftime("%d/%m/%Y %H:%M")
 
         for slot in self.app.schedule_slots:
             if slot.is_general_event:
@@ -996,12 +1025,17 @@ class ScheduleTab(ttk.Frame):
                 description=slot.description,
                 acolyte_ids=list(slot.acolyte_ids),
                 is_general_event=slot.is_general_event,
+                general_event_name=slot.general_event_name,
+                include_as_activity=slot.include_as_activity,
+                include_as_schedule=slot.include_as_schedule,
+                excluded_acolyte_ids=list(slot.excluded_acolyte_ids),
+                suspended_excluded_acolyte_ids=list(slot.suspended_excluded_acolyte_ids),
             )
             for slot in self.app.schedule_slots
         ]
         gen_schedule = GeneratedSchedule(
             id=str(uuid.uuid4()),
-            generated_at=datetime.now().strftime("%d/%m/%Y %H:%M"),
+            generated_at=finalized_at,
             schedule_text=text,
             slots=snapshot_slots,
         )
@@ -1022,52 +1056,98 @@ class ScheduleTab(ttk.Frame):
                         )
                         ac.schedule_history.append(entry)
 
-        if general_event_slots:
-            batch_id = str(uuid.uuid4())
-            batch_entries = []
+        batch_entries = []
 
-            for slot in general_event_slots:
-                if not slot.include_as_activity:
-                    continue
+        for slot in general_event_slots:
+            if not slot.include_as_activity:
+                continue
 
-                event_id = str(uuid.uuid4())
-                event_name = slot.general_event_name or slot.description
+            event_id = str(uuid.uuid4())
+            event_name = slot.general_event_name or slot.description
 
-                participating_acolyte_ids = []
-                for aid in slot.acolyte_ids:
-                    ac = self.app.find_acolyte(aid)
-                    if ac and not ac.is_suspended:
-                        participating_acolyte_ids.append(aid)
+            participating_acolyte_ids = []
+            for aid in slot.acolyte_ids:
+                ac = self.app.find_acolyte(aid)
+                if ac and not ac.is_suspended:
+                    participating_acolyte_ids.append(aid)
 
-                batch_entry = FinalizedEventBatchEntry(
+            batch_entries.append(
+                FinalizedActivityBatchEntry(
                     event_id=event_id,
                     name=event_name,
                     date=slot.date,
                     time=slot.time,
                     participating_acolyte_ids=participating_acolyte_ids,
+                    source_type="general_slot",
+                    source_ref_id=slot.id,
                 )
-                batch_entries.append(batch_entry)
+            )
 
-                for ac in self.app.acolytes:
-                    if ac.id in participating_acolyte_ids:
-                        hist_entry = EventHistoryEntry(
+            for ac in self.app.acolytes:
+                if ac.id in participating_acolyte_ids:
+                    ac.event_history.append(
+                        ActivityHistoryEntry(
                             event_id=event_id,
                             name=event_name,
                             date=slot.date,
                             time=slot.time,
                         )
-                        ac.event_history.append(hist_entry)
+                    )
 
-            if batch_entries:
-                batch = FinalizedEventBatch(
-                    id=batch_id,
-                    finalized_at=datetime.now().strftime("%d/%m/%Y %H:%M"),
-                    entries=batch_entries,
+        regenerated_events = []
+        for activity in self.app.general_events:
+            participating_acolyte_ids = [
+                ac.id for ac in self.app.acolytes if ac.id not in activity.excluded_acolyte_ids
+            ]
+
+            batch_entries.append(
+                FinalizedActivityBatchEntry(
+                    event_id=activity.id,
+                    name=activity.name,
+                    date=activity.date,
+                    time=activity.time,
+                    participating_acolyte_ids=participating_acolyte_ids,
+                    source_type="activity",
+                    source_ref_id=activity.id,
+                    include_in_message=activity.include_in_message,
+                    excluded_acolyte_ids=list(activity.excluded_acolyte_ids),
                 )
-                self.app.finalized_event_batches.append(batch)
-                gen_schedule.batch_id = batch_id
+            )
 
-        self.app.events_tab.finalize_pending_events()
+            for ac in self.app.acolytes:
+                if ac.id in participating_acolyte_ids:
+                    ac.event_history.append(
+                        ActivityHistoryEntry(
+                            event_id=activity.id,
+                            name=activity.name,
+                            date=activity.date,
+                            time=activity.time,
+                        )
+                    )
+
+            weekday = detect_weekday(activity.date)
+            next_date = next_occurrence_of_day(weekday) if weekday else activity.date
+            regenerated_events.append(
+                type(activity)(
+                    id=str(uuid.uuid4()),
+                    name=activity.name,
+                    date=next_date,
+                    time=activity.time,
+                    include_in_message=activity.include_in_message,
+                    excluded_acolyte_ids=list(activity.excluded_acolyte_ids),
+                )
+            )
+
+        self.app.general_events = regenerated_events
+
+        if batch_entries:
+            batch = FinalizedActivityBatch(
+                id=str(uuid.uuid4()),
+                finalized_at=finalized_at,
+                entries=batch_entries,
+            )
+            self.app.finalized_event_batches.append(batch)
+            gen_schedule.batch_id = batch.id
 
         # Reset slots for reuse: new IDs, clear acolytes, update dates
         for slot in self.app.schedule_slots:

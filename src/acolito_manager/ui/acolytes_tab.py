@@ -15,7 +15,7 @@ from ..models import (
     Suspension,
     BonusMovement,
     ScheduleHistoryEntry,
-    EventHistoryEntry,
+    ActivityHistoryEntry,
     Unavailability,
     TemporaryUnavailability,
     CicloHistoryEntry,
@@ -49,6 +49,7 @@ class AcolytesTab(ttk.Frame):
         self._overview_frame = None
         self._notes_save_job = None
         self._loading_notes = False
+        self._overview_shown_once = False
         self._build()
 
     # --------------------------------------------------------------------- #
@@ -101,6 +102,9 @@ class AcolytesTab(ttk.Frame):
         self.right = ttk.Frame(paned, padding=6)
         paned.add(self.right, minsize=480)
         self._build_detail_panel()
+
+        # Show Visão Geral automatically the first time this tab becomes visible.
+        self.bind("<Visibility>", self._on_first_visit)
 
     def _build_detail_panel(self):
         """Constrói o painel de detalhes do acólito."""
@@ -282,7 +286,7 @@ class AcolytesTab(ttk.Frame):
         )
         unav_btn_frame = ttk.Frame(self._tab_unavailabilities)
         unav_btn_frame.pack(fill=tk.X, pady=2)
-        ttk.Button(unav_btn_frame, text="➕ Adicionar", command=self._add_unavailability).pack(side=tk.LEFT, padx=2)
+        ttk.Button(unav_btn_frame, text="➕ Semanal", command=self._add_unavailability).pack(side=tk.LEFT, padx=2)
         ttk.Button(unav_btn_frame, text="➕ Temporária", command=self._add_temp_unavailability).pack(side=tk.LEFT, padx=2)
         ttk.Button(unav_btn_frame, text="✏️ Editar", command=self._edit_unavailability).pack(side=tk.LEFT, padx=2)
         ttk.Button(unav_btn_frame, text="🗑️ Excluir", command=self._delete_unavailability).pack(side=tk.LEFT, padx=2)
@@ -375,6 +379,15 @@ class AcolytesTab(ttk.Frame):
     def _hide_detail(self):
         self.detail_frame.pack_forget()
         self.no_selection_label.pack(pady=20)
+
+    def _on_first_visit(self, event=None):
+        """Show Visão Geral automatically the first time the tab becomes visible."""
+        if self._overview_shown_once:
+            return
+        self._overview_shown_once = True
+        self.unbind("<Visibility>")
+        if self.app.acolytes:
+            self._show_overview_table()
 
     def sync_current_cycle_name(self):
         if hasattr(self, "current_cycle_name_var"):
@@ -600,7 +613,10 @@ class AcolytesTab(ttk.Frame):
             detail = entry.name or "Sem descrição"
         else:
             detail = entry.description or "Sem descrição"
-        return f"Faltou {label}: {detail} {self._to_short_date(entry.date)} {entry.time or '-'}"
+        date_short = self._to_short_date(entry.date)
+        time_text = (entry.time or "").strip()
+        suffix = f" {time_text}" if time_text else ""
+        return f"Faltou {label}: {detail} {date_short}{suffix}"
 
     def _sync_linked_absence(self, ac: Acolyte, entry_type: str, entry, missed: bool):
         entry_id = entry.event_id if entry_type == "event" else entry.schedule_id
@@ -1153,7 +1169,7 @@ class AcolytesTab(ttk.Frame):
         dlg = AddEventEntryDialog(self.app.root)
         if dlg.result:
             name, date, time = dlg.result
-            entry = EventHistoryEntry(
+            entry = ActivityHistoryEntry(
                 event_id=str(uuid.uuid4()),
                 name=name,
                 date=date,
@@ -1466,6 +1482,33 @@ class AcolytesTab(ttk.Frame):
             ), tags=(tag,) if tag else ())
 
         overview_tree.pack(fill=tk.BOTH, expand=True)
+
+        def _on_row_double_click(event):
+            sel = overview_tree.selection()
+            if not sel:
+                return
+            values = overview_tree.item(sel[0], "values")
+            if not values:
+                return
+            name = values[0]
+            target = next((a for a in self.app.acolytes if a.name == name), None)
+            if target is None:
+                return
+            # Select in listbox and open detail
+            sorted_acs = sorted(self.app.acolytes, key=lambda a: a.name.lower())
+            for i, ac in enumerate(sorted_acs):
+                if ac.id == target.id:
+                    self.acolyte_listbox.selection_clear(0, tk.END)
+                    self.acolyte_listbox.selection_set(i)
+                    self.acolyte_listbox.see(i)
+                    break
+            self._current_acolyte = target
+            if hasattr(self, '_overview_frame') and self._overview_frame:
+                self._overview_frame.destroy()
+                self._overview_frame = None
+            self._show_acolyte_detail()
+
+        overview_tree.bind("<Double-1>", _on_row_double_click)
 
         ttk.Button(
             self._overview_frame, text="Fechar Visão Geral",

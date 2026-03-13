@@ -6,7 +6,7 @@ from tkinter import ttk, messagebox
 from typing import Callable
 from datetime import datetime
 
-from ..models import GeneralEvent, EventHistoryEntry, FinalizedEventBatch, FinalizedEventBatchEntry
+from ..models import Activity, ActivityHistoryEntry, FinalizedActivityBatch, FinalizedActivityBatchEntry
 from ..utils import WEEKDAYS_PT, normalize_date, detect_weekday, next_occurrence_of_day
 from .widgets import DateEntryFrame, TimeEntryFrame
 from .dialogs import AddEventDialog, EditEventParticipantsDialog
@@ -65,10 +65,10 @@ def _acolyte_unavailability_reason(acolyte, slot_date: str, slot_day: str, slot_
     return ""
 
 
-class EventCard(ttk.LabelFrame):
+class ActivityCard(ttk.LabelFrame):
     """Card inline para edição de uma atividade pendente."""
 
-    def __init__(self, parent, event: GeneralEvent, app, schedule_tab, on_remove: Callable[[GeneralEvent], None]):
+    def __init__(self, parent, event: Activity, app, schedule_tab, on_remove: Callable[[Activity], None]):
         super().__init__(parent, text=f"Atividade #{event.id[:6]}", padding=6)
         self.app = app
         self.event = event
@@ -268,24 +268,24 @@ class EventCard(ttk.LabelFrame):
         self._on_remove(self.event)
 
 
-class EventsTab:
+class ActivitiesTab:
     """Gerenciador inline de atividades pendentes."""
 
     def __init__(self, app, schedule_tab):
         self.app = app
         self.schedule_tab = schedule_tab
 
-    def create_card(self, parent, event: GeneralEvent):
-        return EventCard(parent, event, self.app, self.schedule_tab, self._remove_event)
+    def create_card(self, parent, event: Activity):
+        return ActivityCard(parent, event, self.app, self.schedule_tab, self._remove_activity)
 
     def refresh_list(self):
         self.schedule_tab.refresh_cards()
 
-    def add_event(self):
+    def add_activity(self):
         dlg = AddEventDialog(self.app.root)
         if dlg.result:
             name, date, time = dlg.result
-            ev = GeneralEvent(
+            ev = Activity(
                 id=str(uuid.uuid4()),
                 name=name,
                 date=date,
@@ -314,7 +314,7 @@ class EventsTab:
                     parent=self.app.root,
                 )
 
-    def _remove_event(self, ev: GeneralEvent):
+    def _remove_activity(self, ev: Activity):
         if not messagebox.askyesno("Confirmar", f"Remover atividade '{ev.name}'?"):
             return
         self.app.general_events = [item for item in self.app.general_events if item.id != ev.id]
@@ -332,7 +332,7 @@ class EventsTab:
 
         for ev in self.app.general_events:
             participants = [ac.id for ac in self.app.acolytes if ac.id not in ev.excluded_acolyte_ids]
-            entry = FinalizedEventBatchEntry(
+            entry = FinalizedActivityBatchEntry(
                 event_id=ev.id,
                 name=ev.name,
                 date=ev.date,
@@ -342,14 +342,14 @@ class EventsTab:
             entries.append(entry)
             for ac in self.app.acolytes:
                 if ac.id not in ev.excluded_acolyte_ids:
-                    hist_entry = EventHistoryEntry(event_id=ev.id, name=ev.name, date=ev.date, time=ev.time)
+                    hist_entry = ActivityHistoryEntry(event_id=ev.id, name=ev.name, date=ev.date, time=ev.time)
                     ac.event_history.append(hist_entry)
                     count += 1
 
             weekday = detect_weekday(ev.date)
             next_date = next_occurrence_of_day(weekday) if weekday else ev.date
             regenerated_events.append(
-                GeneralEvent(
+                Activity(
                     id=str(uuid.uuid4()),
                     name=ev.name,
                     date=next_date,
@@ -359,7 +359,7 @@ class EventsTab:
                 )
             )
 
-        batch = FinalizedEventBatch(
+        batch = FinalizedActivityBatch(
             id=batch_id,
             finalized_at=datetime.now().strftime("%d/%m/%Y %H:%M"),
             entries=entries,

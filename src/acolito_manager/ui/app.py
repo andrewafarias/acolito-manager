@@ -10,9 +10,9 @@ from ..utils import get_birthday_acolytes_this_week, detect_weekday
 from ..models import (
     Acolyte,
     ScheduleSlot,
-    GeneralEvent,
+    Activity,
     GeneratedSchedule,
-    FinalizedEventBatch,
+    FinalizedActivityBatch,
     StandardSlot,
     CicloHistoryEntry,
 )
@@ -23,14 +23,14 @@ from .calendar_tab import CalendarTab
 
 
 class App:
-    """Aplicação principal de gerenciamento de escala de acólitos."""
+    """Aplicação principal de gerenciamento de convocação de acólitos."""
 
     def __init__(self):
         self.acolytes: List[Acolyte] = []
         self.schedule_slots: List[ScheduleSlot] = []
-        self.general_events: List[GeneralEvent] = []
+        self.general_events: List[Activity] = []
         self.generated_schedules: List[GeneratedSchedule] = []
-        self.finalized_event_batches: List[FinalizedEventBatch] = []
+        self.finalized_event_batches: List[FinalizedActivityBatch] = []
         self.standard_slots: List[StandardSlot] = []
         self.ciclo_history: List[CicloHistoryEntry] = []
         self.custom_common_times: List[str] = []
@@ -99,7 +99,7 @@ class App:
             value=self.include_activity_table_per_acolyte
         )
         settings_menu.add_checkbutton(
-            label="Incluir tabela de atividades para cada acólito",
+            label="Incluir tabela de atividades para cada acólito no relatório",
             variable=self._include_activity_table_per_acolyte_var,
             command=self._on_toggle_include_activity_table_per_acolyte,
         )
@@ -128,7 +128,7 @@ class App:
         self.history_tab = HistoryTab(self.notebook, self)
         self.calendar_tab = CalendarTab(self.notebook, self)
 
-        self.notebook.add(self.schedule_tab, text="🛠️ Criar Escala")
+        self.notebook.add(self.schedule_tab, text="🛠️ Convocação")
         self.notebook.add(self.acolytes_tab, text="👥 Acólitos")
         self.notebook.add(self.calendar_tab, text="📆 Calendário")
         self.notebook.add(self.history_tab, text="📜 Histórico")
@@ -254,11 +254,11 @@ class App:
         )
 
     def get_selected_acolyte_for_schedule(self) -> Optional[Acolyte]:
-        """Retorna o acólito selecionado na aba de escalas."""
+        """Retorna o acólito selecionado na aba de convocação."""
         return self.schedule_tab.get_selected_acolyte()
 
     def get_selected_acolytes_for_schedule(self) -> List[Acolyte]:
-        """Retorna todos os acólitos selecionados na aba de escalas."""
+        """Retorna todos os acólitos selecionados na aba de convocação."""
         return self.schedule_tab.get_selected_acolytes()
 
     def _export_data(self):
@@ -350,9 +350,9 @@ class App:
         messagebox.showinfo(
             "Sobre",
             "Gerenciador de Acólitos\n\n"
-            "Ferramenta para gerenciar a escala de acólitos de uma igreja.\n\n"
+            "Ferramenta para gerenciar a convocação de acólitos de uma igreja.\n\n"
             "Funcionalidades:\n"
-            "- Criar e gerenciar escalas semanais\n"
+            "- Criar e gerenciar convocações semanais\n"
             "- Registrar atividades\n"
             "- Gerenciar acólitos (faltas, bônus, suspensões)\n"
             "- Gerar relatórios em PDF",

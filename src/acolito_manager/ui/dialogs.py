@@ -6,7 +6,7 @@ from tkinter import ttk, messagebox
 from datetime import datetime
 from typing import Optional
 
-from ..models import BonusMovement, StandardSlot, ScheduleSlot, Unavailability, TemporaryUnavailability, GeneralEvent
+from ..models import BonusMovement, StandardSlot, ScheduleSlot, Unavailability, TemporaryUnavailability, Activity
 from ..utils import (
     WEEKDAYS_PT,
     detect_weekday,
@@ -480,7 +480,7 @@ class FinalizeScheduleDialog(BaseDialog):
         frame = ttk.Frame(self, padding=16)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(frame, text="Texto da escala:").pack(anchor="w")
+        ttk.Label(frame, text="Texto da convocação:").pack(anchor="w")
 
         txt_frame = ttk.Frame(frame)
         txt_frame.pack(fill=tk.BOTH, expand=True, pady=4)
@@ -797,11 +797,11 @@ class AddMultipleAcolytesDialog(BaseDialog):
 
 
 class StandardSlotsDialog(BaseDialog):
-    """Diálogo para gerenciar escala padrão."""
+    """Diálogo para gerenciar convocação padrão."""
 
     def __init__(self, parent, app):
         self.app = app
-        super().__init__(parent, "Gerenciar Escala Padrão")
+        super().__init__(parent, "Gerenciar Convocação Padrão")
         self._build()
         self.wait_window()
 
@@ -811,7 +811,7 @@ class StandardSlotsDialog(BaseDialog):
 
         ttk.Label(
             frame,
-            text="Itens da escala padrão podem ser horários normais ou atividades e são adicionados automaticamente à escala atual.",
+            text="Itens da convocação padrão podem ser escalas normais ou atividades e são adicionados automaticamente à convocação atual.",
             foreground="gray",
         ).pack(anchor="w", pady=(0, 6))
 
@@ -825,7 +825,7 @@ class StandardSlotsDialog(BaseDialog):
 
         self._refresh_list()
 
-        add_frame = ttk.LabelFrame(frame, text="Adicionar Item da Escala Padrão", padding=8)
+        add_frame = ttk.LabelFrame(frame, text="Adicionar Item da Convocação Padrão", padding=8)
         add_frame.pack(fill=tk.X, pady=6)
 
         ttk.Label(add_frame, text="Dia:").grid(row=0, column=0, sticky="w", pady=2)
@@ -876,7 +876,7 @@ class StandardSlotsDialog(BaseDialog):
             side=tk.LEFT, padx=4
         )
         ttk.Button(
-            btn_row, text="📋 Adicionar à Escala Atual", command=self._add_to_schedule
+            btn_row, text="📋 Adicionar à Convocação Atual", command=self._add_to_schedule
         ).pack(side=tk.LEFT, padx=4)
         ttk.Button(btn_row, text="Fechar", command=self.destroy).pack(side=tk.RIGHT, padx=4)
 
@@ -936,7 +936,7 @@ class StandardSlotsDialog(BaseDialog):
     def _remove_slot(self):
         sel = self.listbox.curselection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione um item da escala padrão.", parent=self)
+            messagebox.showinfo("Aviso", "Selecione um item da convocação padrão.", parent=self)
             return
         idx = sel[0]
         if idx < len(self._displayed_standard_slots):
@@ -951,14 +951,14 @@ class StandardSlotsDialog(BaseDialog):
     def _add_to_schedule(self):
         ordered_slots = sorted(self.app.standard_slots, key=self._standard_slot_sort_key)
         if not ordered_slots:
-            messagebox.showinfo("Aviso", "Nenhum item da escala padrão cadastrado.", parent=self)
+            messagebox.showinfo("Aviso", "Nenhum item da convocação padrão cadastrado.", parent=self)
             return
         added_schedule_items = 0
         added_activity_items = 0
         for ss in ordered_slots:
             auto_date = next_occurrence_of_day(ss.day)
             if getattr(ss, "is_activity", False):
-                event = GeneralEvent(
+                event = Activity(
                     id=str(uuid.uuid4()),
                     name=ss.description,
                     date=auto_date,
@@ -979,7 +979,7 @@ class StandardSlotsDialog(BaseDialog):
         self.app.save()
         messagebox.showinfo(
             "Concluído",
-            f"{added_schedule_items} horário(s) e {added_activity_items} atividade(s) da escala padrão adicionados à escala atual.\n"
+            f"{added_schedule_items} escala(s) e {added_activity_items} atividade(s) da convocação padrão adicionados à convocação atual.\n"
             "Datas preenchidas automaticamente.",
             parent=self,
         )
@@ -1552,12 +1552,12 @@ class CloseCicloDialog(BaseDialog):
             ).pack(anchor="w")
             ttk.Checkbutton(
                 keep_frame,
-                text="Cards rascunho de Criar Escala",
+                text="Cards rascunho de Convocação",
                 variable=self.keep_draft_cards_var,
             ).pack(anchor="w")
             ttk.Checkbutton(
                 keep_frame,
-                text="Escalas/atividades finalizadas do ciclo atual",
+                text="Convocações/atividades finalizadas do ciclo atual",
                 variable=self.keep_finalized_history_var,
             ).pack(anchor="w")
 

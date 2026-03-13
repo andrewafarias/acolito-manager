@@ -9,11 +9,11 @@ from typing import List, Dict, Optional
 from ..models import (
     Absence,
     ScheduleSlot,
-    GeneralEvent,
+    Activity,
     Acolyte,
     GeneratedScheduleSlotSnapshot,
     ScheduleHistoryEntry,
-    EventHistoryEntry,
+    ActivityHistoryEntry,
 )
 from ..utils import detect_weekday
 
@@ -97,7 +97,7 @@ class DayInfo:
         self.date_obj = date_obj
         self.birthdays: List[Acolyte] = []
         self.schedule_slots: List[ScheduleSlot] = []
-        self.general_events: List[GeneralEvent] = []
+        self.general_events: List[Activity] = []
         self.history_slots: List[dict] = []  # from generated schedules
         self.history_events: List[dict] = []  # from finalized event batches
 
@@ -393,7 +393,7 @@ class DayDetailDialog(tk.Toplevel):
                         if ac.id not in slot.excluded_acolyte_ids]
             return [ac for ac in self.app.acolytes if ac.id in slot.acolyte_ids]
         else:
-            evt: GeneralEvent = unit
+            evt: Activity = unit
             return [ac for ac in self.app.acolytes
                     if ac.id not in evt.excluded_acolyte_ids]
 
@@ -411,7 +411,7 @@ class DayDetailDialog(tk.Toplevel):
                 parts.append(f"— {slot.description}")
             return " ".join(parts)
         else:
-            evt: GeneralEvent = unit
+            evt: Activity = unit
             parts = [f"✨ {evt.name}"]
             if evt.time:
                 parts.append(f"({evt.time})")
@@ -430,8 +430,9 @@ class DayDetailDialog(tk.Toplevel):
                 or getattr(unit, "general_event_name", "")
                 or "Sem descrição"
             )
-        time_str = getattr(unit, "time", "") or "-"
-        return f"Faltou {label}: {detail} {date_str} {time_str}"
+        time_str = (getattr(unit, "time", "") or "").strip()
+        suffix = f" {time_str}" if time_str else ""
+        return f"Faltou {label}: {detail} {date_str}{suffix}"
 
     def _set_linked_missed_flag(self, acolyte: Acolyte, entry_type: str, entry_id: str, missed: bool):
         unit = self._entry_refs.get((entry_type, entry_id))
@@ -471,7 +472,7 @@ class DayDetailDialog(tk.Toplevel):
                 name = getattr(unit, "name", "") or getattr(unit, "general_event_name", "") or "Atividade"
                 time_str = getattr(unit, "time", "") or ""
                 acolyte.event_history.append(
-                    EventHistoryEntry(
+                    ActivityHistoryEntry(
                         event_id=entry_id,
                         name=name,
                         date=date_str,
@@ -1106,8 +1107,9 @@ class UnitDetailDialog(tk.Toplevel):
                 or getattr(self.unit, "general_event_name", "")
                 or "Sem descrição"
             )
-        time_str = getattr(self.unit, "time", "") or "-"
-        return f"Faltou {label}: {detail} {date_str} {time_str}"
+        time_str = (getattr(self.unit, "time", "") or "").strip()
+        suffix = f" {time_str}" if time_str else ""
+        return f"Faltou {label}: {detail} {date_str}{suffix}"
 
     def _set_linked_missed_flag(self, acolyte: Acolyte, entry_type: str, entry_id: str, missed: bool):
         if entry_type == "schedule":
@@ -1142,7 +1144,7 @@ class UnitDetailDialog(tk.Toplevel):
         if not found and missed:
             date_str = _format_date(self.date_obj)
             acolyte.event_history.append(
-                EventHistoryEntry(
+                ActivityHistoryEntry(
                     event_id=entry_id,
                     name=getattr(self.unit, "name", "") or "Atividade",
                     date=date_str,
@@ -1311,16 +1313,64 @@ class CalendarTab(ttk.Frame):
         self._tl_canvas = tl_canvas
 
         def _on_tl_configure(_evt):
-            tl_canvas.configure(scrollregion=tl_canvas.bbox("all"))
+            bbox = tl_canvas.bbox("all")
+            if bbox:
+                tl_canvas.configure(scrollregion=bbox)
+            else:
+                tl_canvas.configure(
+                    scrollregion=(0, 0, tl_canvas.winfo_width(), tl_canvas.winfo_height())
+                )
         self._tl_inner.bind("<Configure>", _on_tl_configure)
 
         def _on_tl_canvas_configure(event):
             tl_canvas.itemconfigure(self._tl_canvas_window, width=event.width)
         tl_canvas.bind("<Configure>", _on_tl_canvas_configure)
 
+        def _scroll_timeline_by_pixels(pixel_delta: float):
+            bbox = tl_canvas.bbox("all")
+            if not bbox:
+                return
+
+            total_height = max(0, bbox[3] - bbox[1])
+            viewport_height = tl_canvas.winfo_height()
+            movable = total_height - viewport_height
+            if movable <= 0:
+                return
+
+            start, _end = tl_canvas.yview()
+            new_start = start + (pixel_delta / movable)
+            if new_start < 0.0:
+                new_start = 0.0
+            elif new_start > 1.0:
+                new_start = 1.0
+            tl_canvas.yview_moveto(new_start)
+
         def _on_tl_mousewheel(event):
-            tl_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-        tl_canvas.bind("<MouseWheel>", _on_tl_mousewheel)
+            # Linux wheel events
+            if getattr(event, "num", None) == 4:
+                _scroll_timeline_by_pixels(-26)
+                return
+            if getattr(event, "num", None) == 5:
+                _scroll_timeline_by_pixels(26)
+                return
+
+            # Windows/macOS wheel / touchpad deltas
+            delta = getattr(event, "delta", 0)
+            if delta:
+                _scroll_timeline_by_pixels(-delta / 4)
+
+        def _bind_tl_scroll(_evt=None):
+            tl_canvas.bind_all("<MouseWheel>", _on_tl_mousewheel, add="+")
+            tl_canvas.bind_all("<Button-4>", _on_tl_mousewheel, add="+")
+            tl_canvas.bind_all("<Button-5>", _on_tl_mousewheel, add="+")
+
+        def _unbind_tl_scroll(_evt=None):
+            tl_canvas.unbind_all("<MouseWheel>")
+            tl_canvas.unbind_all("<Button-4>")
+            tl_canvas.unbind_all("<Button-5>")
+
+        tl_canvas.bind("<Enter>", _bind_tl_scroll)
+        tl_canvas.bind("<Leave>", _unbind_tl_scroll)
 
         self._refresh_timeline()
 
