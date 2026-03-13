@@ -2,7 +2,7 @@
 
 import json
 import os
-from typing import List, Tuple
+from typing import List
 from pathlib import Path
 
 from .models import (
