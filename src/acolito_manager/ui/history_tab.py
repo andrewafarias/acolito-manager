@@ -803,7 +803,7 @@ class HistoryTab(ttk.Frame):
             return
 
         try:
-            from ..models import Acolyte, FinalizedActivityBatchEntry, FinalizedActivityBatch, GeneratedSchedule
+            from ..models import Acolyte, FinalizedActivityBatch, GeneratedSchedule
             acolytes = sorted(
                 [Acolyte.from_dict(a) for a in ch.acolytes_snapshot],
                 key=lambda a: a.name.lower()
