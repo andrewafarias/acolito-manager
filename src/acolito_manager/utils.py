@@ -64,16 +64,26 @@ def is_currently_suspended(acolyte) -> bool:
     for s in acolyte.suspensions:
         if not s.is_active:
             continue
+
         try:
-            start_dt = datetime.strptime(s.start_date, "%d/%m/%Y").date()
+            # Original logic requires a valid start_date
+            start_dt = getattr(s, "start_date_dt", None)
+            if start_dt is None:
+                start_dt = datetime.strptime(s.start_date, "%d/%m/%Y").date()
+
             if start_dt > today:
                 continue
+
             if s.end_date:
-                end_dt = datetime.strptime(s.end_date, "%d/%m/%Y").date()
+                end_dt = getattr(s, "end_date_dt", None)
+                if end_dt is None:
+                    end_dt = datetime.strptime(s.end_date, "%d/%m/%Y").date()
+
                 if end_dt < today:
                     continue
+
             return True
-        except ValueError:
+        except (ValueError, TypeError):
             continue
     return False
 
