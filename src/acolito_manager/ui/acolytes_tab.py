@@ -337,6 +337,7 @@ class AcolytesTab(ttk.Frame):
                                 has_expired = True
                                 break
                         except ValueError:
+                            # Skip if suspension date format is invalid
                             pass
                 if has_expired:
                     self.acolyte_listbox.itemconfig(i, foreground="#B8860B")
@@ -422,6 +423,7 @@ class AcolytesTab(ttk.Frame):
                             has_expired = True
                             break
                     except ValueError:
+                        # Skip if suspension date format is invalid
                         pass
             if has_expired:
                 susp_text = " 🟡 LEVANTAR SUSPENSÃO"
@@ -437,6 +439,7 @@ class AcolytesTab(ttk.Frame):
                             has_future_suspension = True
                             break
                     except ValueError:
+                        # Skip if suspension date format is invalid
                         pass
             if has_future_suspension:
                 susp_text = " 🟠 SERÁ SUSPENDIDO"
@@ -517,6 +520,7 @@ class AcolytesTab(ttk.Frame):
                                 self._tree_suspensions.item(items[i], tags=("expired",))
                                 continue
                         except ValueError:
+                            # Skip if suspension end date format is invalid
                             pass
 
                     if s.start_date:
@@ -526,6 +530,7 @@ class AcolytesTab(ttk.Frame):
                                 self._tree_suspensions.tag_configure("future", background="#FFD699")
                                 self._tree_suspensions.item(items[i], tags=("future",))
                         except ValueError:
+                            # Skip if suspension start date format is invalid
                             pass
 
         self._refresh_tree(self._tree_bonus, [
@@ -650,6 +655,7 @@ class AcolytesTab(ttk.Frame):
                             s.is_active = False
                             changed = True
                 except ValueError:
+                    # Skip if suspension date format is invalid
                     pass
 
         if changed:
@@ -676,6 +682,7 @@ class AcolytesTab(ttk.Frame):
         try:
             self.internal_notes_text.edit_undo()
         except tk.TclError:
+            # Undo history might be empty
             pass
         return "break"
 
@@ -683,6 +690,7 @@ class AcolytesTab(ttk.Frame):
         try:
             self.internal_notes_text.edit_redo()
         except tk.TclError:
+            # Redo history might be empty
             pass
         return "break"
 
@@ -1448,6 +1456,7 @@ class AcolytesTab(ttk.Frame):
                                 has_expired = True
                                 break
                         except ValueError:
+                            # Skip if suspension date format is invalid
                             pass
                 if has_expired:
                     status = "Levantar Suspensão"
@@ -1465,6 +1474,7 @@ class AcolytesTab(ttk.Frame):
                                 has_future_suspension = True
                                 break
                         except ValueError:
+                            # Skip if suspension date format is invalid
                             pass
                 if has_future_suspension:
                     status = "Será Suspendido"
@@ -1626,4 +1636,5 @@ class AcolytesTab(ttk.Frame):
             else:
                 subprocess.call(["xdg-open", path])
         except Exception:
+            # Silently fail if file cannot be opened
             pass

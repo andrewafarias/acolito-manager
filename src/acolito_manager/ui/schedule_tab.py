@@ -106,6 +106,7 @@ def _sort_key_date_time(date_str: str, time_str: str):
                 date_rank = 0
                 date_value = (year, month, day)
         except (ValueError, TypeError):
+            # Keep default sorting values on parse error
             pass
 
     # Items with empty/invalid time go after valid times for the same date.
@@ -117,6 +118,7 @@ def _sort_key_date_time(date_str: str, time_str: str):
             time_rank = 0
             time_value = parsed_time.hour * 60 + parsed_time.minute
         except ValueError:
+            # Keep default sorting values on parse error
             pass
 
     return date_rank, date_value, time_rank, time_value

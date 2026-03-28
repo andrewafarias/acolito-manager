@@ -41,6 +41,7 @@ def _parse_date(date_str: str) -> Optional[date]:
         if len(parts) == 2:
             return date(datetime.now().year, int(parts[1]), int(parts[0]))
     except (ValueError, IndexError):
+        # Return None if date format is invalid
         pass
     return None
 
@@ -78,6 +79,7 @@ def _date_time_sort_key(date_str: str, time_str: str):
             time_rank = 0
             time_key = (parsed_time.hour, parsed_time.minute)
         except ValueError:
+            # Keep default sorting values on parse error
             pass
 
     return date_key, time_rank, time_key

@@ -38,6 +38,7 @@ class CalendarDialog(BaseDialog):
             y = max(0, min(y, sh - h))
             self.geometry(f"+{x}+{y}")
         else:
+            # Fallback if mouse position is not available
             pass
 
     def _build(self):
@@ -56,6 +57,7 @@ class CalendarDialog(BaseDialog):
                 elif len(parts) == 2:
                     self._view_month = int(parts[1])
             except (ValueError, IndexError):
+                # Fallback to current year/month on parse error
                 pass
 
         frame = ttk.Frame(self, padding=8)
@@ -208,6 +210,7 @@ class TimePickerDialog(BaseDialog):
             y = max(0, min(y, sh - h))
             self.geometry(f"+{x}+{y}")
         else:
+            # Fallback if mouse position is not available
             pass
 
     def _get_common_times(self):
@@ -231,6 +234,7 @@ class TimePickerDialog(BaseDialog):
                 if len(parts) > 1:
                     init_m = int(parts[1])
             except (ValueError, IndexError):
+                # Fallback to default time on parse error
                 pass
 
         time_frame = ttk.Frame(frame)

@@ -25,6 +25,7 @@ def detect_weekday(date_str: str) -> str:
             dt = datetime(year, month, day)
             return WEEKDAYS_PT[dt.weekday()]
     except (ValueError, IndexError):
+        # Return empty string if date format is invalid
         pass
     return ""
 

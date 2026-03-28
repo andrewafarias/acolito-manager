@@ -879,4 +879,5 @@ class HistoryTab(ttk.Frame):
             else:
                 subprocess.call(["xdg-open", path])
         except Exception:
+            # Silently fail if file cannot be opened
             pass
