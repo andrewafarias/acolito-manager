@@ -1,5 +1,6 @@
 """Classe principal da aplicação."""
 
+import uuid
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from typing import List, Optional
@@ -20,6 +21,8 @@ from .schedule_tab import ScheduleTab
 from .acolytes_tab import AcolytesTab
 from .history_tab import HistoryTab
 from .calendar_tab import CalendarTab
+from .widgets import TimePickerDialog
+from .dialogs import BirthdaySettingsDialog, BirthdayWeekDialog
 
 
 class App:
@@ -58,7 +61,6 @@ class App:
         self._load_data()
 
         # Make custom_common_times accessible to time picker
-        from .widgets import TimePickerDialog
         TimePickerDialog._app = self
 
         # Show birthday warning after startup
@@ -244,10 +246,8 @@ class App:
         return self._acolyte_cache.get(acolyte_id)
 
     def build_current_cycle_history_entry(self, label: str) -> CicloHistoryEntry:
-        import uuid as _uuid
-
         return CicloHistoryEntry(
-            id=str(_uuid.uuid4()),
+            id=str(uuid.uuid4()),
             closed_at=datetime.now().strftime("%d/%m/%Y %H:%M"),
             label=label,
             acolytes_snapshot=[a.to_dict() for a in self.acolytes],
@@ -359,7 +359,6 @@ class App:
         )
 
     def _open_birthday_settings(self):
-        from .dialogs import BirthdaySettingsDialog
         dialog = BirthdaySettingsDialog(self.root, self.birthday_settings)
         if dialog.result is not None:
             # Preserva os aniversários específicos ocultados no popup semanal.
@@ -429,7 +428,6 @@ class App:
         if not birthday_items:
             return
 
-        from .dialogs import BirthdayWeekDialog
         dialog = BirthdayWeekDialog(self.root, birthday_items)
         muted_selected = set(dialog.result or [])
         if muted_selected:
