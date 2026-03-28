@@ -26,3 +26,4 @@ data/
 
 *.pdf
 *.json
+!src/acolito_manager/locales_*.json

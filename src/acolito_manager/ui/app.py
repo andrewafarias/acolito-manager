@@ -1,3 +1,4 @@
+from ..i18n import _
 """Classe principal da aplicação."""
 
 import uuid
@@ -79,22 +80,22 @@ class App:
         self.root.config(menu=menubar)
 
         file_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="Arquivo", menu=file_menu)
-        file_menu.add_command(label="Salvar", command=self.save, accelerator="Ctrl+S")
-        file_menu.add_command(label="Carregar", command=self._load_data)
+        menubar.add_cascade(label=_("Arquivo"), menu=file_menu)
+        file_menu.add_command(label=_("Salvar"), command=self.save, accelerator="Ctrl+S")
+        file_menu.add_command(label=_("Carregar"), command=self._load_data)
         file_menu.add_separator()
-        file_menu.add_command(label="Exportar Dados...", command=self._export_data)
-        file_menu.add_command(label="Importar Dados...", command=self._import_data)
+        file_menu.add_command(label=_("Exportar Dados..."), command=self._export_data)
+        file_menu.add_command(label=_("Importar Dados..."), command=self._import_data)
         file_menu.add_separator()
-        file_menu.add_command(label="Sair", command=self.root.quit)
+        file_menu.add_command(label=_("Sair"), command=self.root.quit)
 
         settings_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="Configurações", menu=settings_menu)
+        menubar.add_cascade(label=_("Configurações"), menu=settings_menu)
         self._include_suspended_general_event_var = tk.BooleanVar(
             value=self.include_suspended_in_general_event
         )
         settings_menu.add_checkbutton(
-            label="Incluir acólitos suspensos na Convocação geral",
+            label=_("Incluir acólitos suspensos na Convocação geral"),
             variable=self._include_suspended_general_event_var,
             command=self._on_toggle_include_suspended_general_event,
         )
@@ -102,7 +103,7 @@ class App:
             value=self.include_activity_table_per_acolyte
         )
         settings_menu.add_checkbutton(
-            label="Incluir tabela de atividades para cada acólito no relatório",
+            label=_("Incluir tabela de atividades para cada acólito no relatório"),
             variable=self._include_activity_table_per_acolyte_var,
             command=self._on_toggle_include_activity_table_per_acolyte,
         )
@@ -110,16 +111,30 @@ class App:
             value=self.auto_lift_suspensions_on_end_date
         )
         settings_menu.add_checkbutton(
-            label="Levantar suspensões automaticamente ao atingir data final",
+            label=_("Levantar suspensões automaticamente ao atingir data final"),
             variable=self._auto_lift_suspensions_var,
             command=self._on_toggle_auto_lift_suspensions,
         )
 
         help_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="Ajuda", menu=help_menu)
-        help_menu.add_command(label="Sobre", command=self._show_about)
+        menubar.add_cascade(label=_("Ajuda"), menu=help_menu)
+        help_menu.add_command(label=_("Sobre"), command=self._show_about)
+
+        # Language Menu
+        lang_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label=_("Language"), menu=lang_menu)
+        lang_menu.add_command(label=_("English (EN)"), command=lambda: self._set_language("en"))
+        lang_menu.add_command(label=_("Español (ES)"), command=lambda: self._set_language("es"))
+        lang_menu.add_command(label=_("Português (PT)"), command=lambda: self._set_language("pt"))
+        lang_menu.add_command(label=_("Latina (LA)"), command=lambda: self._set_language("la"))
 
         self.root.bind("<Control-s>", lambda e: self.save())
+
+    def _set_language(self, lang_code: str):
+        from ..i18n import set_language
+        set_language(lang_code)
+        messagebox.showinfo(_("Language"), _("Language changed successfully. Please restart the application for the changes to take effect."))
+        self.root.quit()
 
     def _build_notebook(self):
         self.notebook = ttk.Notebook(self.root)
@@ -131,10 +146,10 @@ class App:
         self.history_tab = HistoryTab(self.notebook, self)
         self.calendar_tab = CalendarTab(self.notebook, self)
 
-        self.notebook.add(self.schedule_tab, text="🛠️ Convocação")
-        self.notebook.add(self.acolytes_tab, text="👥 Acólitos")
-        self.notebook.add(self.calendar_tab, text="📆 Calendário")
-        self.notebook.add(self.history_tab, text="📜 Histórico")
+        self.notebook.add(self.schedule_tab, text=_("🛠️ Convocação"))
+        self.notebook.add(self.acolytes_tab, text=_("👥 Acólitos"))
+        self.notebook.add(self.calendar_tab, text=_("📆 Calendário"))
+        self.notebook.add(self.history_tab, text=_("📜 Histórico"))
 
         # Auto-refresh calendar when its tab is selected
         self.notebook.bind("<<NotebookTabChanged>>", self._on_main_tab_changed)
@@ -266,7 +281,7 @@ class App:
         path = filedialog.asksaveasfilename(
             defaultextension=".json",
             filetypes=[("JSON", "*.json")],
-            title="Exportar dados como",
+            title=_("Exportar dados como"),
             initialfile="acolitos_backup.json",
         )
         if not path:
@@ -288,15 +303,15 @@ class App:
                 self.current_cycle_name,
                 self.birthday_settings,
             )
-            messagebox.showinfo("Sucesso", f"Dados exportados com sucesso para:\n{path}")
+            messagebox.showinfo(_("Sucesso"), f_("Dados exportados com sucesso para:\n{path}"))
         except Exception as e:
-            messagebox.showerror("Erro", f"Falha ao exportar dados:\n{e}")
+            messagebox.showerror(_("Erro"), f_("Falha ao exportar dados:\n{e}"))
 
     def _import_data(self):
         """Importa todos os dados de um arquivo JSON."""
         path = filedialog.askopenfilename(
             filetypes=[("JSON", "*.json")],
-            title="Importar dados de",
+            title=_("Importar dados de"),
         )
         if not path:
             return
@@ -344,7 +359,7 @@ class App:
                 f"{len(general_events)} atividades.",
             )
         except Exception as e:
-            messagebox.showerror("Erro", f"Falha ao importar dados:\n{e}")
+            messagebox.showerror(_("Erro"), f_("Falha ao importar dados:\n{e}"))
 
     def _show_about(self):
         messagebox.showinfo(
