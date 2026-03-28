@@ -1,3 +1,4 @@
+from ..i18n import _
 """Aba de calendário com visualização mensal e linha do tempo."""
 
 import calendar as cal_module
@@ -228,7 +229,7 @@ class DayDetailDialog(tk.Toplevel):
 
         # -- Birthdays -------------------------------------------------------
         if self.day_info.birthdays:
-            lf = ttk.LabelFrame(self._inner, text="🎂 Aniversariantes", padding=6)
+            lf = ttk.LabelFrame(self._inner, text=_("🎂 Aniversariantes"), padding=6)
             lf.pack(fill=tk.X, pady=(0, 6))
             for ac in self.day_info.birthdays:
                 ttk.Label(lf, text=f"• {ac.name}").pack(anchor="w")
@@ -292,21 +293,21 @@ class DayDetailDialog(tk.Toplevel):
                 self._build_history_unit_section(unit, is_schedule=is_schedule)
 
         # -- Close button ----------------------------------------------------
-        ttk.Button(self._inner, text="Fechar", command=self.destroy).pack(pady=8)
+        ttk.Button(self._inner, text=_("Fechar"), command=self.destroy).pack(pady=8)
 
     def _build_right_panel(self):
         """Build the right panel with falta rápida list and buttons."""
         right = self._right_panel
 
-        ttk.Label(right, text="⚡ Falta Rápida",
+        ttk.Label(right, text=_("⚡ Falta Rápida"),
                   font=("TkDefaultFont", 11, "bold")).pack(pady=4)
-        ttk.Label(right, text="Marcar ausência em\nunidades finalizadas do dia",
+        ttk.Label(right, text=_("Marcar ausência em\nunidades finalizadas do dia"),
                   foreground="gray", font=("TkDefaultFont", 8),
                   justify="center").pack(anchor="center")
 
         all_acolytes_in_day = self._get_finalized_acolytes_in_day()
 
-        ttk.Label(right, text="(Ctrl+clique para múltiplos)",
+        ttk.Label(right, text=_("(Ctrl+clique para múltiplos)"),
                   foreground="gray", font=("TkDefaultFont", 8)).pack(anchor="w", padx=4)
 
         list_frame = ttk.Frame(right)
@@ -345,15 +346,15 @@ class DayDetailDialog(tk.Toplevel):
         btn_frame = ttk.Frame(right)
         btn_frame.pack(fill=tk.X, pady=4)
         ttk.Button(
-            btn_frame, text="Tudo como falta real",
+            btn_frame, text=_("Tudo como falta real"),
             command=lambda: self._quick_absence_all(symbolic=False),
         ).pack(fill=tk.X, pady=1)
         ttk.Button(
-            btn_frame, text="1 real + resto simbólica",
+            btn_frame, text=_("1 real + resto simbólica"),
             command=lambda: self._quick_absence_all(symbolic=True),
         ).pack(fill=tk.X, pady=1)
         ttk.Button(
-            btn_frame, text="Tudo presente",
+            btn_frame, text=_("Tudo presente"),
             command=self._quick_mark_all_present,
         ).pack(fill=tk.X, pady=1)
 
@@ -363,14 +364,14 @@ class DayDetailDialog(tk.Toplevel):
                 child.configure(state=tk.DISABLED)
             ttk.Label(
                 right,
-                text="Sem unidades finalizadas neste dia.",
+                text=_("Sem unidades finalizadas neste dia."),
                 foreground="gray",
                 font=("TkDefaultFont", 8),
             ).pack(anchor="w", padx=4, pady=(2, 0))
 
         ttk.Separator(right, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=6)
         ttk.Button(
-            right, text="Limpar faltas",
+            right, text=_("Limpar faltas"),
             command=self._clear_all_absences,
         ).pack(fill=tk.X, padx=4, pady=1)
 
@@ -553,7 +554,7 @@ class DayDetailDialog(tk.Toplevel):
         if absence_obj:
             tk.Button(
                 action_frame,
-                text="Remover",
+                text=_("Remover"),
                 font=small_font,
                 padx=2,
                 pady=0,
@@ -570,7 +571,7 @@ class DayDetailDialog(tk.Toplevel):
 
         tk.Button(
             action_frame,
-            text="Real",
+            text=_("Real"),
             font=small_font,
             padx=2,
             pady=0,
@@ -580,7 +581,7 @@ class DayDetailDialog(tk.Toplevel):
         ).pack(side=tk.LEFT, padx=1)
         tk.Button(
             action_frame,
-            text="Simb.",
+            text=_("Simb."),
             font=small_font,
             padx=2,
             pady=0,
@@ -627,13 +628,13 @@ class DayDetailDialog(tk.Toplevel):
         if not allow_absence:
             ttk.Label(
                 lf,
-                text="Planejamento (faltas desabilitadas)",
+                text=_("Planejamento (faltas desabilitadas)"),
                 foreground="gray",
                 font=("TkDefaultFont", 8),
             ).pack(anchor="w", pady=(0, 2))
 
         if not participants:
-            ttk.Label(lf, text="Nenhum acólito participante.").pack(anchor="w")
+            ttk.Label(lf, text=_("Nenhum acólito participante.")).pack(anchor="w")
             return
 
         date_str = _format_date(self.day_info.date_obj)
@@ -650,7 +651,7 @@ class DayDetailDialog(tk.Toplevel):
             if not allow_absence:
                 ttk.Label(
                     row,
-                    text="Sem marcação de falta",
+                    text=_("Sem marcação de falta"),
                     foreground="gray",
                     font=_sm,
                 ).pack(side=tk.LEFT, padx=2)
@@ -692,7 +693,7 @@ class DayDetailDialog(tk.Toplevel):
         lf.pack(fill=tk.X, pady=(0, 6))
 
         if not participants:
-            ttk.Label(lf, text="Nenhum acólito participante.").pack(anchor="w")
+            ttk.Label(lf, text=_("Nenhum acólito participante.")).pack(anchor="w")
             return
 
         date_str = _format_date(self.day_info.date_obj)
@@ -1020,7 +1021,7 @@ class UnitDetailDialog(tk.Toplevel):
             kind = "simb." if absence_obj.is_symbolic else "real"
             ttk.Button(
                 action_frame,
-                text="Remover",
+                text=_("Remover"),
                 command=lambda a=acolyte, uid=unit_id, ds=date_str: self._remove_absence(a, uid, ds),
             ).pack(side=tk.RIGHT, padx=2)
             ttk.Label(
@@ -1032,14 +1033,14 @@ class UnitDetailDialog(tk.Toplevel):
 
         ttk.Button(
             action_frame,
-            text="Real",
+            text=_("Real"),
             command=lambda a=acolyte, uid=unit_id, et=entry_type, ds=date_str: (
                 self._add_absence(a, uid, et, ds, symbolic=False)
             ),
         ).pack(side=tk.RIGHT, padx=2)
         ttk.Button(
             action_frame,
-            text="Simb.",
+            text=_("Simb."),
             command=lambda a=acolyte, uid=unit_id, et=entry_type, ds=date_str: (
                 self._add_absence(a, uid, et, ds, symbolic=True)
             ),
@@ -1075,8 +1076,8 @@ class UnitDetailDialog(tk.Toplevel):
         entry_type = "schedule" if self.is_schedule else "event"
 
         if not participants:
-            ttk.Label(self._outer, text="Nenhum acólito participante.").pack(anchor="w")
-            ttk.Button(self._outer, text="Fechar", command=self.destroy).pack(pady=8)
+            ttk.Label(self._outer, text=_("Nenhum acólito participante.")).pack(anchor="w")
+            ttk.Button(self._outer, text=_("Fechar"), command=self.destroy).pack(pady=8)
             return
 
         ttk.Label(
@@ -1095,7 +1096,7 @@ class UnitDetailDialog(tk.Toplevel):
             self._register_row_action_frame(ac.id, actions)
             self._render_row_actions(actions, ac, unit_id, entry_type, date_str)
 
-        ttk.Button(self._outer, text="Fechar", command=self.destroy).pack(pady=8)
+        ttk.Button(self._outer, text=_("Fechar"), command=self.destroy).pack(pady=8)
 
     def _build_linked_absence_description(self, entry_type: str, date_str: str) -> str:
         label = "atividade" if entry_type == "event" else "escala"
@@ -1257,35 +1258,35 @@ class CalendarTab(ttk.Frame):
 
         # -- Calendar view ---------------------------------------------------
         cal_frame = ttk.Frame(self._notebook)
-        self._notebook.add(cal_frame, text="📅 Datas")
+        self._notebook.add(cal_frame, text=_("📅 Datas"))
 
         nav = ttk.Frame(cal_frame)
         nav.pack(fill=tk.X, pady=6, padx=10)
 
-        ttk.Button(nav, text="◀◀", width=4,
+        ttk.Button(nav, text=_("◀◀"), width=4,
                    command=self._prev_year).pack(side=tk.LEFT, padx=2)
-        ttk.Button(nav, text="◀", width=3,
+        ttk.Button(nav, text=_("◀"), width=3,
                    command=self._prev_month).pack(side=tk.LEFT)
         self._month_label = ttk.Label(
             nav, text="", width=24, anchor="center",
             font=("TkDefaultFont", 12, "bold"),
         )
         self._month_label.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        ttk.Button(nav, text="Hoje", command=self._go_today).pack(side=tk.LEFT, padx=4)
-        ttk.Button(nav, text="▶▶", width=4,
+        ttk.Button(nav, text=_("Hoje"), command=self._go_today).pack(side=tk.LEFT, padx=4)
+        ttk.Button(nav, text=_("▶▶"), width=4,
                    command=self._next_year).pack(side=tk.RIGHT, padx=2)
-        ttk.Button(nav, text="▶", width=3,
+        ttk.Button(nav, text=_("▶"), width=3,
                    command=self._next_month).pack(side=tk.RIGHT)
 
         # Legend
         legend = ttk.Frame(cal_frame)
         legend.pack(pady=(0, 4))
-        tk.Label(legend, text="  ", bg="#4A90E2", width=3).pack(side=tk.LEFT, padx=2)
-        ttk.Label(legend, text="Hoje").pack(side=tk.LEFT, padx=(0, 10))
-        tk.Label(legend, text="  ", bg="#E8A838", width=3).pack(side=tk.LEFT, padx=2)
-        ttk.Label(legend, text="Com evento").pack(side=tk.LEFT, padx=(0, 10))
-        tk.Label(legend, text="  ", bg="#5BB85D", width=3).pack(side=tk.LEFT, padx=2)
-        ttk.Label(legend, text="Hoje + evento").pack(side=tk.LEFT)
+        tk.Label(legend, text=_("  "), bg="#4A90E2", width=3).pack(side=tk.LEFT, padx=2)
+        ttk.Label(legend, text=_("Hoje")).pack(side=tk.LEFT, padx=(0, 10))
+        tk.Label(legend, text=_("  "), bg="#E8A838", width=3).pack(side=tk.LEFT, padx=2)
+        ttk.Label(legend, text=_("Com evento")).pack(side=tk.LEFT, padx=(0, 10))
+        tk.Label(legend, text=_("  "), bg="#5BB85D", width=3).pack(side=tk.LEFT, padx=2)
+        ttk.Label(legend, text=_("Hoje + evento")).pack(side=tk.LEFT)
 
         self._cal_frame = ttk.Frame(cal_frame)
         self._cal_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=4)
@@ -1294,7 +1295,7 @@ class CalendarTab(ttk.Frame):
 
         # -- Timeline view ---------------------------------------------------
         tl_frame = ttk.Frame(self._notebook)
-        self._notebook.add(tl_frame, text="🕒 Linha do Tempo")
+        self._notebook.add(tl_frame, text=_("🕒 Linha do Tempo"))
 
         # Scrollable timeline
         tl_scroll = ttk.Frame(tl_frame)
@@ -1637,7 +1638,7 @@ class CalendarTab(ttk.Frame):
         if not entries:
             ttk.Label(
                 self._tl_inner,
-                text="Nenhum evento encontrado.",
+                text=_("Nenhum evento encontrado."),
                 font=("TkDefaultFont", 10),
             ).pack(pady=20)
             return
@@ -1688,7 +1689,7 @@ class CalendarTab(ttk.Frame):
 
                 if entry["type"] in ("history_schedule", "history_event"):
                     ttk.Button(
-                        row, text="Faltas",
+                        row, text=_("Faltas"),
                         command=lambda e=entry: self._open_unit_detail(e),
                     ).pack(side=tk.RIGHT, padx=2)
 

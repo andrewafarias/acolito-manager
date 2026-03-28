@@ -1,3 +1,4 @@
+from ..i18n import _
 """Aba de convocação e widget de escala."""
 
 import uuid
@@ -146,30 +147,30 @@ class ScheduleSlotCard(ttk.LabelFrame):
         row1 = ttk.Frame(self)
         row1.pack(fill=tk.X, pady=2)
 
-        ttk.Label(row1, text="Data:").pack(side=tk.LEFT)
+        ttk.Label(row1, text=_("Data:")).pack(side=tk.LEFT)
         self.date_var = tk.StringVar(value=self.slot.date)
         self._date_trace_id = self.date_var.trace_add("write", self._on_date_change)
         DateEntryFrame(row1, textvariable=self.date_var, width=6, date_format="DD/MM").pack(
             side=tk.LEFT, padx=2
         )
 
-        ttk.Label(row1, text="Hora:").pack(side=tk.LEFT, padx=(6, 0))
+        ttk.Label(row1, text=_("Hora:")).pack(side=tk.LEFT, padx=(6, 0))
         self.time_var = tk.StringVar(value=self.slot.time)
         self.time_var.trace_add("write", self._on_field_change)
         TimeEntryFrame(row1, textvariable=self.time_var, width=6).pack(side=tk.LEFT, padx=2)
 
-        ttk.Label(row1, text="Descrição:").pack(side=tk.LEFT, padx=(6, 0))
+        ttk.Label(row1, text=_("Descrição:")).pack(side=tk.LEFT, padx=(6, 0))
         self.desc_var = tk.StringVar(value=self.slot.description)
         self.desc_var.trace_add("write", self._on_field_change)
         ttk.Entry(row1, textvariable=self.desc_var, width=20).pack(side=tk.LEFT, padx=2)
 
-        ttk.Button(row1, text="✕", width=3, command=self._remove_self).pack(
+        ttk.Button(row1, text=_("✕"), width=3, command=self._remove_self).pack(
             side=tk.RIGHT, padx=2
         )
 
         row2 = ttk.Frame(self)
         row2.pack(fill=tk.X, pady=2)
-        ttk.Label(row2, text="Dia:").pack(side=tk.LEFT)
+        ttk.Label(row2, text=_("Dia:")).pack(side=tk.LEFT)
         self.day_var = tk.StringVar(value=self.slot.day)
         self.day_combo = ttk.Combobox(
             row2, textvariable=self.day_var, values=WEEKDAYS_PT, width=16, state="readonly"
@@ -186,14 +187,14 @@ class ScheduleSlotCard(ttk.LabelFrame):
         if not self.slot.is_general_event:
             ttk.Button(
                 row4,
-                text="➕ Adicionar Acólitos Selecionados",
+                text=_("➕ Adicionar Acólitos Selecionados"),
                 command=self._add_selected_acolytes,
             ).pack(side=tk.LEFT)
 
         if self.slot.is_general_event:
             ttk.Button(
                 row4,
-                text="✏️ Editar Excluídos",
+                text=_("✏️ Editar Excluídos"),
                 command=self._edit_general_event_excluded,
             ).pack(side=tk.LEFT, padx=(6, 0))
 
@@ -483,7 +484,7 @@ class ScheduleSlotCard(ttk.LabelFrame):
             row_frame.grid(row=0, column=0, sticky="w")
             
             ttk.Label(
-                row_frame, text="TODOS",
+                row_frame, text=_("TODOS"),
                 font=("TkDefaultFont", 10, "bold"), foreground="blue"
             ).pack(side=tk.LEFT)
             
@@ -508,7 +509,7 @@ class ScheduleSlotCard(ttk.LabelFrame):
                 # Label for "excluído: " prefix
                 ttk.Label(
                     labels_frame,
-                    text="excluído: ",
+                    text=_("excluído: "),
                     font=("TkDefaultFont", 8),
                     foreground="gray",
                 ).pack(side=tk.LEFT)
@@ -527,7 +528,7 @@ class ScheduleSlotCard(ttk.LabelFrame):
                 if excluded_names and suspended_excluded_names:
                     ttk.Label(
                         labels_frame,
-                        text=", ",
+                        text=_(", "),
                         font=("TkDefaultFont", 8),
                         foreground="gray",
                     ).pack(side=tk.LEFT)
@@ -545,7 +546,7 @@ class ScheduleSlotCard(ttk.LabelFrame):
             return
 
         if not self.slot.acolyte_ids:
-            ttk.Label(self.acolyte_frame, text="(nenhum acólito)", foreground="gray").grid(
+            ttk.Label(self.acolyte_frame, text=_("(nenhum acólito)"), foreground="gray").grid(
                 row=0, column=0, sticky="w"
             )
             return
@@ -573,7 +574,7 @@ class ScheduleSlotCard(ttk.LabelFrame):
             name_label.pack(side=tk.LEFT)
             btn = ttk.Button(
                 lbl_frame,
-                text="✕",
+                text=_("✕"),
                 width=2,
                 command=lambda aid=aid: self._remove_acolyte(aid),
             )
@@ -609,25 +610,25 @@ class ScheduleTab(ttk.Frame):
 
         header = ttk.Frame(left)
         header.pack(fill=tk.X, pady=4)
-        ttk.Label(header, text="Convocação", font=("TkDefaultFont", 12, "bold")).pack(
+        ttk.Label(header, text=_("Convocação"), font=("TkDefaultFont", 12, "bold")).pack(
             side=tk.LEFT
         )
 
         btn_row = ttk.Frame(left)
         btn_row.pack(fill=tk.X, pady=2)
-        ttk.Button(btn_row, text="➕ Adicionar Escala", command=self._add_slot).pack(
+        ttk.Button(btn_row, text=_("➕ Adicionar Escala"), command=self._add_slot).pack(
             side=tk.LEFT, padx=4
         )
-        ttk.Button(btn_row, text="✨ Adicionar Atividade", command=self._add_event).pack(
+        ttk.Button(btn_row, text=_("✨ Adicionar Atividade"), command=self._add_event).pack(
             side=tk.LEFT, padx=4
         )
-        ttk.Button(btn_row, text="⛪ Convocação geral", command=self._add_general_event_slot).pack(
+        ttk.Button(btn_row, text=_("⛪ Convocação geral"), command=self._add_general_event_slot).pack(
             side=tk.LEFT, padx=4
         )
-        ttk.Button(btn_row, text="📋 Convocação Padrão", command=self._manage_standard_slots).pack(
+        ttk.Button(btn_row, text=_("📋 Convocação Padrão"), command=self._manage_standard_slots).pack(
             side=tk.LEFT, padx=4
         )
-        ttk.Button(btn_row, text="🗑️ Limpar Convocação", command=self._clear_schedule).pack(
+        ttk.Button(btn_row, text=_("🗑️ Limpar Convocação"), command=self._clear_schedule).pack(
             side=tk.LEFT, padx=4
         )
 
@@ -680,7 +681,7 @@ class ScheduleTab(ttk.Frame):
 
         ttk.Button(
             left,
-            text="✅ Finalizar Convocação",
+            text=_("✅ Finalizar Convocação"),
             command=self._finalize_schedule,
             style="Accent.TButton",
         ).pack(fill=tk.X, pady=8, padx=4)
@@ -689,31 +690,31 @@ class ScheduleTab(ttk.Frame):
         right = ttk.Frame(paned, padding=4)
         paned.add(right, minsize=210)
 
-        ttk.Label(right, text="Acólitos", font=("TkDefaultFont", 11, "bold")).pack(pady=4)
+        ttk.Label(right, text=_("Acólitos"), font=("TkDefaultFont", 11, "bold")).pack(pady=4)
 
         ctrl_frame = ttk.Frame(right)
         ctrl_frame.pack(fill=tk.X, pady=2)
 
-        ttk.Label(ctrl_frame, text="Ordem:").pack(side=tk.LEFT)
+        ttk.Label(ctrl_frame, text=_("Ordem:")).pack(side=tk.LEFT)
         self._sort_dir_var = tk.StringVar(value="asc")
         ttk.Radiobutton(
-            ctrl_frame, text="↑ Crescente", variable=self._sort_dir_var,
+            ctrl_frame, text=_("↑ Crescente"), variable=self._sort_dir_var,
             value="asc", command=self.refresh_acolyte_list,
         ).pack(side=tk.LEFT, padx=2)
         ttk.Radiobutton(
-            ctrl_frame, text="↓ Decrescente", variable=self._sort_dir_var,
+            ctrl_frame, text=_("↓ Decrescente"), variable=self._sort_dir_var,
             value="desc", command=self.refresh_acolyte_list,
         ).pack(side=tk.LEFT, padx=2)
 
         self._include_events_var = tk.BooleanVar(value=False)
         ttk.Checkbutton(
-            right, text="Incluir atividades no total",
+            right, text=_("Incluir atividades no total"),
             variable=self._include_events_var,
             command=self.refresh_acolyte_list,
         ).pack(anchor="w", padx=4)
 
         ttk.Label(
-            right, text="(Ctrl+clique para múltiplos)", foreground="gray",
+            right, text=_("(Ctrl+clique para múltiplos)"), foreground="gray",
             font=("TkDefaultFont", 8),
         ).pack(anchor="w", padx=4)
 
@@ -922,7 +923,7 @@ class ScheduleTab(ttk.Frame):
     def _clear_schedule(self):
         if not self.app.schedule_slots and not self.app.general_events:
             return
-        if not messagebox.askyesno("Confirmar", "Deseja limpar todos os cards da convocação?"):
+        if not messagebox.askyesno(_("Confirmar"), _("Deseja limpar todos os cards da convocação?")):
             return
         self.app.schedule_slots.clear()
         self.app.general_events.clear()
@@ -952,7 +953,7 @@ class ScheduleTab(ttk.Frame):
 
     def _finalize_schedule(self):
         if not self.app.schedule_slots and not self.app.general_events:
-            messagebox.showinfo("Aviso", "Nenhuma escala ou atividade criada.")
+            messagebox.showinfo(_("Aviso"), _("Nenhuma escala ou atividade criada."))
             return
 
         # Auto-populate general event slots that have empty acolyte_ids (reused after previous finalization)

@@ -1,3 +1,4 @@
+from ..i18n import _
 """Diálogos modais da aplicação."""
 
 import uuid
@@ -30,13 +31,13 @@ class AddAbsenceDialog(BaseDialog):
         frame = ttk.Frame(self, padding=16)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(frame, text="Data (DD/MM/YYYY):").grid(row=0, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Data (DD/MM/YYYY):")).grid(row=0, column=0, sticky="w", pady=4)
         self.date_var = tk.StringVar(value=today_str())
         DateEntryFrame(frame, textvariable=self.date_var, width=14, date_format="DD/MM/YYYY").grid(
             row=0, column=1, padx=8, pady=4
         )
 
-        ttk.Label(frame, text="Descrição:").grid(row=1, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Descrição:")).grid(row=1, column=0, sticky="w", pady=4)
         self.desc_var = tk.StringVar()
         ttk.Entry(frame, textvariable=self.desc_var, width=30).grid(
             row=1, column=1, padx=8, pady=4
@@ -44,8 +45,8 @@ class AddAbsenceDialog(BaseDialog):
 
         btn_frame = ttk.Frame(frame)
         btn_frame.grid(row=2, column=0, columnspan=2, pady=10)
-        ttk.Button(btn_frame, text="Confirmar", command=self._ok).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Confirmar"), command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Cancelar"), command=self._cancel).pack(side=tk.LEFT, padx=4)
 
     def _ok(self):
         date = normalize_date(self.date_var.get().strip())
@@ -70,19 +71,19 @@ class EditAbsenceDialog(BaseDialog):
         frame = ttk.Frame(self, padding=16)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(frame, text="Data (DD/MM/YYYY):").grid(row=0, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Data (DD/MM/YYYY):")).grid(row=0, column=0, sticky="w", pady=4)
         self.date_var = tk.StringVar(value=self._absence.date)
         DateEntryFrame(frame, textvariable=self.date_var, width=14, date_format="DD/MM/YYYY").grid(
             row=0, column=1, padx=8, pady=4
         )
 
-        ttk.Label(frame, text="Descrição:").grid(row=1, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Descrição:")).grid(row=1, column=0, sticky="w", pady=4)
         self.desc_var = tk.StringVar(value=self._absence.description or "")
         ttk.Entry(frame, textvariable=self.desc_var, width=30).grid(
             row=1, column=1, padx=8, pady=4
         )
 
-        ttk.Label(frame, text="Não contada:").grid(row=2, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Não contada:")).grid(row=2, column=0, sticky="w", pady=4)
         self.symbolic_var = tk.BooleanVar(value=self._absence.is_symbolic)
         ttk.Checkbutton(frame, variable=self.symbolic_var).grid(
             row=2, column=1, padx=8, pady=4, sticky="w"
@@ -90,8 +91,8 @@ class EditAbsenceDialog(BaseDialog):
 
         btn_frame = ttk.Frame(frame)
         btn_frame.grid(row=3, column=0, columnspan=2, pady=10)
-        ttk.Button(btn_frame, text="Salvar", command=self._ok).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Salvar"), command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Cancelar"), command=self._cancel).pack(side=tk.LEFT, padx=4)
 
     def _ok(self):
         date = normalize_date(self.date_var.get().strip())
@@ -118,19 +119,19 @@ class AddScheduleEntryDialog(BaseDialog):
         frame = ttk.Frame(self, padding=16)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(frame, text="Data (DD/MM/YYYY):").grid(row=0, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Data (DD/MM/YYYY):")).grid(row=0, column=0, sticky="w", pady=4)
         self.date_var = tk.StringVar(value=today_str())
         DateEntryFrame(frame, textvariable=self.date_var, width=14, date_format="DD/MM/YYYY").grid(
             row=0, column=1, padx=8, pady=4
         )
 
-        ttk.Label(frame, text="Horário (HH:MM):").grid(row=1, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Horário (HH:MM):")).grid(row=1, column=0, sticky="w", pady=4)
         self.time_var = tk.StringVar()
         TimeEntryFrame(frame, textvariable=self.time_var, width=10).grid(
             row=1, column=1, padx=8, pady=4, sticky="w"
         )
 
-        ttk.Label(frame, text="Descrição:").grid(row=2, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Descrição:")).grid(row=2, column=0, sticky="w", pady=4)
         self.desc_var = tk.StringVar()
         ttk.Entry(frame, textvariable=self.desc_var, width=30).grid(
             row=2, column=1, padx=8, pady=4
@@ -138,8 +139,8 @@ class AddScheduleEntryDialog(BaseDialog):
 
         btn_frame = ttk.Frame(frame)
         btn_frame.grid(row=3, column=0, columnspan=2, pady=10)
-        ttk.Button(btn_frame, text="Confirmar", command=self._ok).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Confirmar"), command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Cancelar"), command=self._cancel).pack(side=tk.LEFT, padx=4)
 
     def _ok(self):
         date = normalize_date(self.date_var.get().strip())
@@ -171,19 +172,19 @@ class AddEventEntryDialog(BaseDialog):
         frame = ttk.Frame(self, padding=16)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(frame, text="Nome da atividade:").grid(row=0, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Nome da atividade:")).grid(row=0, column=0, sticky="w", pady=4)
         self.name_var = tk.StringVar()
         ttk.Entry(frame, textvariable=self.name_var, width=30).grid(
             row=0, column=1, padx=8, pady=4
         )
 
-        ttk.Label(frame, text="Data (DD/MM/YYYY):").grid(row=1, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Data (DD/MM/YYYY):")).grid(row=1, column=0, sticky="w", pady=4)
         self.date_var = tk.StringVar(value=today_str())
         DateEntryFrame(frame, textvariable=self.date_var, width=14, date_format="DD/MM/YYYY").grid(
             row=1, column=1, padx=8, pady=4
         )
 
-        ttk.Label(frame, text="Horário (opcional, HH:MM):").grid(row=2, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Horário (opcional, HH:MM):")).grid(row=2, column=0, sticky="w", pady=4)
         self.time_var = tk.StringVar()
         TimeEntryFrame(frame, textvariable=self.time_var, width=10).grid(
             row=2, column=1, padx=8, pady=4, sticky="w"
@@ -191,8 +192,8 @@ class AddEventEntryDialog(BaseDialog):
 
         btn_frame = ttk.Frame(frame)
         btn_frame.grid(row=3, column=0, columnspan=2, pady=10)
-        ttk.Button(btn_frame, text="Confirmar", command=self._ok).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Confirmar"), command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Cancelar"), command=self._cancel).pack(side=tk.LEFT, padx=4)
 
     def _ok(self):
         name = self.name_var.get().strip()
@@ -220,19 +221,19 @@ class SuspendDialog(BaseDialog):
         frame = ttk.Frame(self, padding=16)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(frame, text="Motivo:").grid(row=0, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Motivo:")).grid(row=0, column=0, sticky="w", pady=4)
         self.reason_var = tk.StringVar()
         ttk.Entry(frame, textvariable=self.reason_var, width=30).grid(
             row=0, column=1, padx=8, pady=4
         )
 
-        ttk.Label(frame, text="Data de início (DD/MM/YYYY):").grid(row=1, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Data de início (DD/MM/YYYY):")).grid(row=1, column=0, sticky="w", pady=4)
         self.start_var = tk.StringVar(value=today_str())
         DateEntryFrame(frame, textvariable=self.start_var, width=14, date_format="DD/MM/YYYY").grid(
             row=1, column=1, padx=8, pady=4
         )
 
-        ttk.Label(frame, text="Data de fim (DD/MM/YYYY):").grid(row=2, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Data de fim (DD/MM/YYYY):")).grid(row=2, column=0, sticky="w", pady=4)
         self.end_var = tk.StringVar()
         DateEntryFrame(frame, textvariable=self.end_var, width=14, date_format="DD/MM/YYYY").grid(
             row=2, column=1, padx=8, pady=4
@@ -240,8 +241,8 @@ class SuspendDialog(BaseDialog):
 
         btn_frame = ttk.Frame(frame)
         btn_frame.grid(row=3, column=0, columnspan=2, pady=10)
-        ttk.Button(btn_frame, text="Confirmar", command=self._ok).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Confirmar"), command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Cancelar"), command=self._cancel).pack(side=tk.LEFT, padx=4)
 
     def _ok(self):
         reason = self.reason_var.get().strip()
@@ -267,7 +268,7 @@ class SelectSuspensionsDialog(BaseDialog):
         frame = ttk.Frame(self, padding=16)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(frame, text="Selecione as suspensões que deseja levantar:").pack(
+        ttk.Label(frame, text=_("Selecione as suspensões que deseja levantar:")).pack(
             anchor="w", pady=(0, 6)
         )
 
@@ -281,8 +282,8 @@ class SelectSuspensionsDialog(BaseDialog):
 
         btn_frame = ttk.Frame(frame)
         btn_frame.pack(pady=10)
-        ttk.Button(btn_frame, text="Confirmar", command=self._ok).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Confirmar"), command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Cancelar"), command=self._cancel).pack(side=tk.LEFT, padx=4)
 
     def _ok(self):
         selected = [susp for susp, var in self._vars if var.get()]
@@ -308,25 +309,25 @@ class EditSuspensionDialog(BaseDialog):
         frame = ttk.Frame(self, padding=16)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(frame, text="Motivo:").grid(row=0, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Motivo:")).grid(row=0, column=0, sticky="w", pady=4)
         self.reason_var = tk.StringVar(value=self._suspension.reason)
         ttk.Entry(frame, textvariable=self.reason_var, width=30).grid(
             row=0, column=1, padx=8, pady=4
         )
 
-        ttk.Label(frame, text="Data de início:").grid(row=1, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Data de início:")).grid(row=1, column=0, sticky="w", pady=4)
         self.start_var = tk.StringVar(value=self._suspension.start_date)
         DateEntryFrame(frame, textvariable=self.start_var, width=14, date_format="DD/MM/YYYY").grid(
             row=1, column=1, padx=8, pady=4
         )
 
-        ttk.Label(frame, text="Data de fim:").grid(row=2, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Data de fim:")).grid(row=2, column=0, sticky="w", pady=4)
         self.end_var = tk.StringVar(value=self._suspension.end_date)
         DateEntryFrame(frame, textvariable=self.end_var, width=14, date_format="DD/MM/YYYY").grid(
             row=2, column=1, padx=8, pady=4
         )
 
-        ttk.Label(frame, text="Ativa:").grid(row=3, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Ativa:")).grid(row=3, column=0, sticky="w", pady=4)
         self.active_var = tk.BooleanVar(value=self._suspension.is_active)
         ttk.Checkbutton(frame, variable=self.active_var).grid(
             row=3, column=1, padx=8, pady=4, sticky="w"
@@ -334,8 +335,8 @@ class EditSuspensionDialog(BaseDialog):
 
         btn_frame = ttk.Frame(frame)
         btn_frame.grid(row=4, column=0, columnspan=2, pady=10)
-        ttk.Button(btn_frame, text="Salvar", command=self._ok).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Salvar"), command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Cancelar"), command=self._cancel).pack(side=tk.LEFT, padx=4)
 
     def _ok(self):
         self.result = {
@@ -361,13 +362,13 @@ class BonusDialog(BaseDialog):
         frame = ttk.Frame(self, padding=16)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(frame, text="Quantidade:").grid(row=0, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Quantidade:")).grid(row=0, column=0, sticky="w", pady=4)
         self.amount_var = tk.StringVar(value="1")
         ttk.Spinbox(frame, from_=1, to=99, textvariable=self.amount_var, width=8).grid(
             row=0, column=1, padx=8, pady=4, sticky="w"
         )
 
-        ttk.Label(frame, text="Descrição:").grid(row=1, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Descrição:")).grid(row=1, column=0, sticky="w", pady=4)
         self.desc_var = tk.StringVar()
         ttk.Entry(frame, textvariable=self.desc_var, width=30).grid(
             row=1, column=1, padx=8, pady=4
@@ -375,8 +376,8 @@ class BonusDialog(BaseDialog):
 
         btn_frame = ttk.Frame(frame)
         btn_frame.grid(row=2, column=0, columnspan=2, pady=10)
-        ttk.Button(btn_frame, text="Confirmar", command=self._ok).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Confirmar"), command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Cancelar"), command=self._cancel).pack(side=tk.LEFT, padx=4)
 
     def _ok(self):
         try:
@@ -403,7 +404,7 @@ class EditBonusMovementDialog(BaseDialog):
         frame = ttk.Frame(self, padding=16)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(frame, text="Tipo:").grid(row=0, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Tipo:")).grid(row=0, column=0, sticky="w", pady=4)
         self.type_var = tk.StringVar(value=self._movement.type)
         ttk.Combobox(
             frame,
@@ -413,19 +414,19 @@ class EditBonusMovementDialog(BaseDialog):
             state="readonly",
         ).grid(row=0, column=1, padx=8, pady=4, sticky="w")
 
-        ttk.Label(frame, text="Quantidade:").grid(row=1, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Quantidade:")).grid(row=1, column=0, sticky="w", pady=4)
         self.amount_var = tk.StringVar(value=str(self._movement.amount))
         ttk.Spinbox(frame, from_=1, to=9999, textvariable=self.amount_var, width=8).grid(
             row=1, column=1, padx=8, pady=4, sticky="w"
         )
 
-        ttk.Label(frame, text="Descrição:").grid(row=2, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Descrição:")).grid(row=2, column=0, sticky="w", pady=4)
         self.desc_var = tk.StringVar(value=self._movement.description)
         ttk.Entry(frame, textvariable=self.desc_var, width=32).grid(
             row=2, column=1, padx=8, pady=4
         )
 
-        ttk.Label(frame, text="Data (DD/MM):").grid(row=3, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Data (DD/MM):")).grid(row=3, column=0, sticky="w", pady=4)
         self.date_var = tk.StringVar(value=self._movement.date)
         DateEntryFrame(
             frame,
@@ -436,8 +437,8 @@ class EditBonusMovementDialog(BaseDialog):
 
         btn_frame = ttk.Frame(frame)
         btn_frame.grid(row=4, column=0, columnspan=2, pady=10)
-        ttk.Button(btn_frame, text="Salvar", command=self._ok).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Salvar"), command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Cancelar"), command=self._cancel).pack(side=tk.LEFT, padx=4)
 
     def _ok(self):
         mov_type = self.type_var.get().strip()
@@ -480,7 +481,7 @@ class FinalizeScheduleDialog(BaseDialog):
         frame = ttk.Frame(self, padding=16)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(frame, text="Texto da convocação:").pack(anchor="w")
+        ttk.Label(frame, text=_("Texto da convocação:")).pack(anchor="w")
 
         txt_frame = ttk.Frame(frame)
         txt_frame.pack(fill=tk.BOTH, expand=True, pady=4)
@@ -504,9 +505,9 @@ class FinalizeScheduleDialog(BaseDialog):
         btn_frame = ttk.Frame(frame)
         btn_frame.pack(pady=8)
         ttk.Button(
-            btn_frame, text="📋 Copiar para Área de Transferência", command=self._copy
+            btn_frame, text=_("📋 Copiar para Área de Transferência"), command=self._copy
         ).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Fechar", command=self.destroy).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Fechar"), command=self.destroy).pack(side=tk.LEFT, padx=4)
 
     def _copy(self):
         self.clipboard_clear()
@@ -530,13 +531,13 @@ class AddEventDialog(BaseDialog):
 
         self._updating_fields = False
 
-        ttk.Label(frame, text="Nome da atividade:").grid(row=0, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Nome da atividade:")).grid(row=0, column=0, sticky="w", pady=4)
         self.name_var = tk.StringVar()
         ttk.Entry(frame, textvariable=self.name_var, width=30).grid(
             row=0, column=1, padx=8, pady=4
         )
 
-        ttk.Label(frame, text="Dia da semana:").grid(row=1, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Dia da semana:")).grid(row=1, column=0, sticky="w", pady=4)
         self.day_var = tk.StringVar(value=WEEKDAYS_PT[datetime.now().weekday()])
         self.day_combo = ttk.Combobox(
             frame,
@@ -547,7 +548,7 @@ class AddEventDialog(BaseDialog):
         )
         self.day_combo.grid(row=1, column=1, padx=8, pady=4, sticky="w")
 
-        ttk.Label(frame, text="Data (DD/MM):").grid(row=2, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Data (DD/MM):")).grid(row=2, column=0, sticky="w", pady=4)
         self.date_var = tk.StringVar(value=next_occurrence_of_day(self.day_var.get()))
         DateEntryFrame(frame, textvariable=self.date_var, width=8, date_format="DD/MM").grid(
             row=2, column=1, padx=8, pady=4, sticky="w"
@@ -556,7 +557,7 @@ class AddEventDialog(BaseDialog):
         self.day_var.trace_add("write", self._on_day_change)
         self.date_var.trace_add("write", self._on_date_change)
 
-        ttk.Label(frame, text="Horário (HH:MM):").grid(row=3, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Horário (HH:MM):")).grid(row=3, column=0, sticky="w", pady=4)
         self.time_var = tk.StringVar()
         TimeEntryFrame(frame, textvariable=self.time_var, width=10).grid(
             row=3, column=1, padx=8, pady=4, sticky="w"
@@ -564,8 +565,8 @@ class AddEventDialog(BaseDialog):
 
         btn_frame = ttk.Frame(frame)
         btn_frame.grid(row=4, column=0, columnspan=2, pady=10)
-        ttk.Button(btn_frame, text="Confirmar", command=self._ok).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Confirmar"), command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Cancelar"), command=self._cancel).pack(side=tk.LEFT, padx=4)
 
     def _on_day_change(self, *_):
         if self._updating_fields:
@@ -625,13 +626,13 @@ class AddConvocacaoGeralDialog(BaseDialog):
 
         self._updating_fields = False
 
-        ttk.Label(frame, text="Nome da Convocação geral:").grid(row=0, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Nome da Convocação geral:")).grid(row=0, column=0, sticky="w", pady=4)
         self.name_var = tk.StringVar()
         ttk.Entry(frame, textvariable=self.name_var, width=30).grid(
             row=0, column=1, padx=8, pady=4
         )
 
-        ttk.Label(frame, text="Dia da semana:").grid(row=1, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Dia da semana:")).grid(row=1, column=0, sticky="w", pady=4)
         self.day_var = tk.StringVar(value=WEEKDAYS_PT[datetime.now().weekday()])
         self.day_combo = ttk.Combobox(
             frame,
@@ -642,7 +643,7 @@ class AddConvocacaoGeralDialog(BaseDialog):
         )
         self.day_combo.grid(row=1, column=1, padx=8, pady=4, sticky="w")
 
-        ttk.Label(frame, text="Data (DD/MM):").grid(row=2, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Data (DD/MM):")).grid(row=2, column=0, sticky="w", pady=4)
         self.date_var = tk.StringVar(value=next_occurrence_of_day(self.day_var.get()))
         DateEntryFrame(frame, textvariable=self.date_var, width=8, date_format="DD/MM").grid(
             row=2, column=1, padx=8, pady=4, sticky="w"
@@ -651,7 +652,7 @@ class AddConvocacaoGeralDialog(BaseDialog):
         self.day_var.trace_add("write", self._on_day_change)
         self.date_var.trace_add("write", self._on_date_change)
 
-        ttk.Label(frame, text="Horário (HH:MM):").grid(row=3, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Horário (HH:MM):")).grid(row=3, column=0, sticky="w", pady=4)
         self.time_var = tk.StringVar()
         TimeEntryFrame(frame, textvariable=self.time_var, width=10).grid(
             row=3, column=1, padx=8, pady=4, sticky="w"
@@ -661,18 +662,18 @@ class AddConvocacaoGeralDialog(BaseDialog):
             value=AddConvocacaoGeralDialog._last_include_as_activity
         )
         ttk.Checkbutton(
-            frame, text="Incluir como atividade", variable=self.include_as_activity_var
+            frame, text=_("Incluir como atividade"), variable=self.include_as_activity_var
         ).grid(row=4, column=0, columnspan=2, sticky="w", pady=4)
 
         self.include_as_schedule_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(
-            frame, text="Incluir como escala", variable=self.include_as_schedule_var
+            frame, text=_("Incluir como escala"), variable=self.include_as_schedule_var
         ).grid(row=5, column=0, columnspan=2, sticky="w", pady=4)
 
         btn_frame = ttk.Frame(frame)
         btn_frame.grid(row=6, column=0, columnspan=2, pady=10)
-        ttk.Button(btn_frame, text="Confirmar", command=self._ok).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Confirmar"), command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Cancelar"), command=self._cancel).pack(side=tk.LEFT, padx=4)
 
     def _on_day_change(self, *_):
         if self._updating_fields:
@@ -743,7 +744,7 @@ class AddMultipleAcolytesDialog(BaseDialog):
 
         ttk.Label(
             frame,
-            text="Digite os nomes dos acólitos (um por linha):"
+            text=_("Digite os nomes dos acólitos (um por linha):")
         ).pack(anchor="w", pady=(0, 4))
 
         text_frame = ttk.Frame(frame)
@@ -765,14 +766,14 @@ class AddMultipleAcolytesDialog(BaseDialog):
 
         ttk.Label(
             frame,
-            text="💡 Dica: Também pode separar por vírgula",
+            text=_("💡 Dica: Também pode separar por vírgula"),
             foreground="gray"
         ).pack(anchor="w", pady=4)
 
         btn_frame = ttk.Frame(frame)
         btn_frame.pack(pady=10)
-        ttk.Button(btn_frame, text="Adicionar", command=self._ok).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Adicionar"), command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Cancelar"), command=self._cancel).pack(side=tk.LEFT, padx=4)
 
     def _ok(self):
         text = self.text_widget.get("1.0", tk.END).strip()
@@ -811,7 +812,7 @@ class StandardSlotsDialog(BaseDialog):
 
         ttk.Label(
             frame,
-            text="Itens da convocação padrão podem ser escalas normais ou atividades e são adicionados automaticamente à convocação atual.",
+            text=_("Itens da convocação padrão podem ser escalas normais ou atividades e são adicionados automaticamente à convocação atual."),
             foreground="gray",
         ).pack(anchor="w", pady=(0, 6))
 
@@ -825,23 +826,23 @@ class StandardSlotsDialog(BaseDialog):
 
         self._refresh_list()
 
-        add_frame = ttk.LabelFrame(frame, text="Adicionar Item da Convocação Padrão", padding=8)
+        add_frame = ttk.LabelFrame(frame, text=_("Adicionar Item da Convocação Padrão"), padding=8)
         add_frame.pack(fill=tk.X, pady=6)
 
-        ttk.Label(add_frame, text="Dia:").grid(row=0, column=0, sticky="w", pady=2)
+        ttk.Label(add_frame, text=_("Dia:")).grid(row=0, column=0, sticky="w", pady=2)
         self._day_var = tk.StringVar()
         ttk.Combobox(
             add_frame, textvariable=self._day_var, values=WEEKDAYS_PT,
             width=16, state="readonly"
         ).grid(row=0, column=1, padx=4, pady=2, sticky="w")
 
-        ttk.Label(add_frame, text="Hora:").grid(row=1, column=0, sticky="w", pady=2)
+        ttk.Label(add_frame, text=_("Hora:")).grid(row=1, column=0, sticky="w", pady=2)
         self._time_var = tk.StringVar()
         TimeEntryFrame(add_frame, textvariable=self._time_var, width=8).grid(
             row=1, column=1, padx=4, pady=2, sticky="w"
         )
 
-        ttk.Label(add_frame, text="Descrição:").grid(row=2, column=0, sticky="w", pady=2)
+        ttk.Label(add_frame, text=_("Descrição:")).grid(row=2, column=0, sticky="w", pady=2)
         self._desc_var = tk.StringVar()
         ttk.Entry(add_frame, textvariable=self._desc_var, width=24).grid(
             row=2, column=1, padx=4, pady=2, sticky="w"
@@ -850,7 +851,7 @@ class StandardSlotsDialog(BaseDialog):
         self._is_activity_var = tk.BooleanVar(value=False)
         ttk.Checkbutton(
             add_frame,
-            text="É atividade",
+            text=_("É atividade"),
             variable=self._is_activity_var,
             command=self._toggle_activity_options,
         ).grid(row=3, column=0, columnspan=2, sticky="w", pady=2)
@@ -858,12 +859,12 @@ class StandardSlotsDialog(BaseDialog):
         self._include_in_message_var = tk.BooleanVar(value=False)
         self._include_in_message_check = ttk.Checkbutton(
             add_frame,
-            text="Incluir na mensagem",
+            text=_("Incluir na mensagem"),
             variable=self._include_in_message_var,
         )
         self._include_in_message_check.grid(row=4, column=0, columnspan=2, sticky="w", pady=2)
 
-        ttk.Button(add_frame, text="➕ Adicionar", command=self._add_slot).grid(
+        ttk.Button(add_frame, text=_("➕ Adicionar"), command=self._add_slot).grid(
             row=5, column=0, columnspan=2, pady=6
         )
 
@@ -872,13 +873,13 @@ class StandardSlotsDialog(BaseDialog):
 
         btn_row = ttk.Frame(frame)
         btn_row.pack(fill=tk.X, pady=4)
-        ttk.Button(btn_row, text="🗑️ Remover Selecionado", command=self._remove_slot).pack(
+        ttk.Button(btn_row, text=_("🗑️ Remover Selecionado"), command=self._remove_slot).pack(
             side=tk.LEFT, padx=4
         )
         ttk.Button(
-            btn_row, text="📋 Adicionar à Convocação Atual", command=self._add_to_schedule
+            btn_row, text=_("📋 Adicionar à Convocação Atual"), command=self._add_to_schedule
         ).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_row, text="Fechar", command=self.destroy).pack(side=tk.RIGHT, padx=4)
+        ttk.Button(btn_row, text=_("Fechar"), command=self.destroy).pack(side=tk.RIGHT, padx=4)
 
     def _refresh_list(self):
         self.listbox.delete(0, tk.END)
@@ -997,19 +998,19 @@ class AddUnavailabilityDialog(BaseDialog):
         frame = ttk.Frame(self, padding=16)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(frame, text="Dia da semana:").grid(row=0, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Dia da semana:")).grid(row=0, column=0, sticky="w", pady=4)
         self.day_var = tk.StringVar()
         ttk.Combobox(
             frame, textvariable=self.day_var, values=WEEKDAYS_PT, width=18, state="readonly"
         ).grid(row=0, column=1, padx=8, pady=4, sticky="w")
 
-        ttk.Label(frame, text="Hora início (HH:MM):").grid(row=1, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Hora início (HH:MM):")).grid(row=1, column=0, sticky="w", pady=4)
         self.start_var = tk.StringVar()
         TimeEntryFrame(frame, textvariable=self.start_var, width=8).grid(
             row=1, column=1, padx=8, pady=4, sticky="w"
         )
 
-        ttk.Label(frame, text="Hora fim (HH:MM):").grid(row=2, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Hora fim (HH:MM):")).grid(row=2, column=0, sticky="w", pady=4)
         self.end_var = tk.StringVar()
         TimeEntryFrame(frame, textvariable=self.end_var, width=8).grid(
             row=2, column=1, padx=8, pady=4, sticky="w"
@@ -1017,8 +1018,8 @@ class AddUnavailabilityDialog(BaseDialog):
 
         btn_frame = ttk.Frame(frame)
         btn_frame.grid(row=3, column=0, columnspan=2, pady=10)
-        ttk.Button(btn_frame, text="Confirmar", command=self._ok).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Confirmar"), command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Cancelar"), command=self._cancel).pack(side=tk.LEFT, padx=4)
 
     def _ok(self):
         day = self.day_var.get().strip()
@@ -1059,13 +1060,13 @@ class AddTemporaryUnavailabilityDialog(BaseDialog):
         frame = ttk.Frame(self, padding=16)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(frame, text="Data início (DD/MM/YYYY):").grid(row=0, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Data início (DD/MM/YYYY):")).grid(row=0, column=0, sticky="w", pady=4)
         self.start_date_var = tk.StringVar(value=today_str())
         DateEntryFrame(frame, textvariable=self.start_date_var, width=14, date_format="DD/MM/YYYY").grid(
             row=0, column=1, padx=8, pady=4, sticky="w"
         )
 
-        ttk.Label(frame, text="Data fim (DD/MM/YYYY):").grid(row=1, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Data fim (DD/MM/YYYY):")).grid(row=1, column=0, sticky="w", pady=4)
         self.end_date_var = tk.StringVar(value=today_str())
         DateEntryFrame(frame, textvariable=self.end_date_var, width=14, date_format="DD/MM/YYYY").grid(
             row=1, column=1, padx=8, pady=4, sticky="w"
@@ -1074,17 +1075,17 @@ class AddTemporaryUnavailabilityDialog(BaseDialog):
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=2, column=0, columnspan=2, sticky="ew", pady=6)
         ttk.Label(
             frame,
-            text="Horário (deixe em branco para o dia todo):",
+            text=_("Horário (deixe em branco para o dia todo):"),
             foreground="#555555",
         ).grid(row=3, column=0, columnspan=2, sticky="w", pady=(0, 2))
 
-        ttk.Label(frame, text="Hora início (HH:MM):").grid(row=4, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Hora início (HH:MM):")).grid(row=4, column=0, sticky="w", pady=4)
         self.start_time_var = tk.StringVar()
         TimeEntryFrame(frame, textvariable=self.start_time_var, width=8).grid(
             row=4, column=1, padx=8, pady=4, sticky="w"
         )
 
-        ttk.Label(frame, text="Hora fim (HH:MM):").grid(row=5, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Hora fim (HH:MM):")).grid(row=5, column=0, sticky="w", pady=4)
         self.end_time_var = tk.StringVar()
         TimeEntryFrame(frame, textvariable=self.end_time_var, width=8).grid(
             row=5, column=1, padx=8, pady=4, sticky="w"
@@ -1092,8 +1093,8 @@ class AddTemporaryUnavailabilityDialog(BaseDialog):
 
         btn_frame = ttk.Frame(frame)
         btn_frame.grid(row=6, column=0, columnspan=2, pady=10)
-        ttk.Button(btn_frame, text="Confirmar", command=self._ok).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Confirmar"), command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Cancelar"), command=self._cancel).pack(side=tk.LEFT, padx=4)
 
     def _ok(self):
         start_date = normalize_date(self.start_date_var.get().strip())
@@ -1159,23 +1160,23 @@ class EditUnavailabilityDialog(BaseDialog):
 
         btn_frame = ttk.Frame(frame)
         btn_frame.grid(row=self._btn_row, column=0, columnspan=2, pady=10)
-        ttk.Button(btn_frame, text="Salvar", command=self._ok).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Salvar"), command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Cancelar"), command=self._cancel).pack(side=tk.LEFT, padx=4)
 
     def _build_regular(self, frame):
-        ttk.Label(frame, text="Dia da semana:").grid(row=0, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Dia da semana:")).grid(row=0, column=0, sticky="w", pady=4)
         self.day_var = tk.StringVar(value=self._item.day)
         ttk.Combobox(
             frame, textvariable=self.day_var, values=WEEKDAYS_PT, width=18, state="readonly"
         ).grid(row=0, column=1, padx=8, pady=4, sticky="w")
 
-        ttk.Label(frame, text="Hora início (HH:MM):").grid(row=1, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Hora início (HH:MM):")).grid(row=1, column=0, sticky="w", pady=4)
         self.start_time_var = tk.StringVar(value=self._item.start_time)
         TimeEntryFrame(frame, textvariable=self.start_time_var, width=8).grid(
             row=1, column=1, padx=8, pady=4, sticky="w"
         )
 
-        ttk.Label(frame, text="Hora fim (HH:MM):").grid(row=2, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Hora fim (HH:MM):")).grid(row=2, column=0, sticky="w", pady=4)
         self.end_time_var = tk.StringVar(value=self._item.end_time)
         TimeEntryFrame(frame, textvariable=self.end_time_var, width=8).grid(
             row=2, column=1, padx=8, pady=4, sticky="w"
@@ -1183,13 +1184,13 @@ class EditUnavailabilityDialog(BaseDialog):
         self._btn_row = 3
 
     def _build_temporary(self, frame):
-        ttk.Label(frame, text="Data início (DD/MM/YYYY):").grid(row=0, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Data início (DD/MM/YYYY):")).grid(row=0, column=0, sticky="w", pady=4)
         self.start_date_var = tk.StringVar(value=self._item.start_date)
         DateEntryFrame(frame, textvariable=self.start_date_var, width=14, date_format="DD/MM/YYYY").grid(
             row=0, column=1, padx=8, pady=4, sticky="w"
         )
 
-        ttk.Label(frame, text="Data fim (DD/MM/YYYY):").grid(row=1, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Data fim (DD/MM/YYYY):")).grid(row=1, column=0, sticky="w", pady=4)
         self.end_date_var = tk.StringVar(value=self._item.end_date)
         DateEntryFrame(frame, textvariable=self.end_date_var, width=14, date_format="DD/MM/YYYY").grid(
             row=1, column=1, padx=8, pady=4, sticky="w"
@@ -1198,17 +1199,17 @@ class EditUnavailabilityDialog(BaseDialog):
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=2, column=0, columnspan=2, sticky="ew", pady=6)
         ttk.Label(
             frame,
-            text="Horário (deixe em branco para o dia todo):",
+            text=_("Horário (deixe em branco para o dia todo):"),
             foreground="#555555",
         ).grid(row=3, column=0, columnspan=2, sticky="w", pady=(0, 2))
 
-        ttk.Label(frame, text="Hora início (HH:MM):").grid(row=4, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Hora início (HH:MM):")).grid(row=4, column=0, sticky="w", pady=4)
         self.start_time_var = tk.StringVar(value=self._item.start_time)
         TimeEntryFrame(frame, textvariable=self.start_time_var, width=8).grid(
             row=4, column=1, padx=8, pady=4, sticky="w"
         )
 
-        ttk.Label(frame, text="Hora fim (HH:MM):").grid(row=5, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text=_("Hora fim (HH:MM):")).grid(row=5, column=0, sticky="w", pady=4)
         self.end_time_var = tk.StringVar(value=self._item.end_time)
         TimeEntryFrame(frame, textvariable=self.end_time_var, width=8).grid(
             row=5, column=1, padx=8, pady=4, sticky="w"
@@ -1316,7 +1317,7 @@ class GeneralEventUnavailabilityDialog(BaseDialog):
 
         self._include_all_var = tk.BooleanVar(value=False)
         ttk.Checkbutton(
-            frame, text="Incluir todos", variable=self._include_all_var,
+            frame, text=_("Incluir todos"), variable=self._include_all_var,
             command=self._toggle_all
         ).pack(anchor="w", pady=(0, 4))
 
@@ -1331,9 +1332,9 @@ class GeneralEventUnavailabilityDialog(BaseDialog):
 
         btn_frame = ttk.Frame(frame)
         btn_frame.pack(pady=10)
-        ttk.Button(btn_frame, text="Confirmar", command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Confirmar"), command=self._ok).pack(side=tk.LEFT, padx=4)
         ttk.Button(
-            btn_frame, text="Cancelar (incluir nenhum)", command=self._cancel
+            btn_frame, text=_("Cancelar (incluir nenhum)"), command=self._cancel
         ).pack(side=tk.LEFT, padx=4)
 
     def _toggle_all(self):
@@ -1375,14 +1376,14 @@ class EditGeneralEventExcludedDialog(BaseDialog):
 
         ttk.Label(
             frame,
-            text="Marque os acólitos que devem ficar excluídos desta Convocação geral:",
+            text=_("Marque os acólitos que devem ficar excluídos desta Convocação geral:"),
             justify="left",
         ).pack(anchor="w", pady=(0, 8))
 
         if self._suspended_locked_ids:
             ttk.Label(
                 frame,
-                text="(suspensos estão bloqueados enquanto a configuração de inclusão estiver desativada)",
+                text=_("(suspensos estão bloqueados enquanto a configuração de inclusão estiver desativada)"),
                 foreground="gray",
                 justify="left",
             ).pack(anchor="w", pady=(0, 6))
@@ -1404,8 +1405,8 @@ class EditGeneralEventExcludedDialog(BaseDialog):
 
         btn_frame = ttk.Frame(frame)
         btn_frame.pack(pady=10)
-        ttk.Button(btn_frame, text="Salvar", command=self._ok).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Salvar"), command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Cancelar"), command=self._cancel).pack(side=tk.LEFT, padx=4)
 
     def _ok(self):
         selected_ids = []
@@ -1432,7 +1433,7 @@ class EditEventParticipantsDialog(BaseDialog):
 
         ttk.Label(
             frame,
-            text="Marque os acólitos que devem ficar excluídos desta atividade:",
+            text=_("Marque os acólitos que devem ficar excluídos desta atividade:"),
             justify="left",
         ).pack(anchor="w", pady=(0, 8))
 
@@ -1451,8 +1452,8 @@ class EditEventParticipantsDialog(BaseDialog):
 
         btn_frame = ttk.Frame(frame)
         btn_frame.pack(pady=10)
-        ttk.Button(btn_frame, text="Salvar", command=self._ok).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Salvar"), command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Cancelar"), command=self._cancel).pack(side=tk.LEFT, padx=4)
 
     def _ok(self):
         self.result = [ac.id for ac, var in self._vars if var.get()]
@@ -1487,12 +1488,12 @@ class CloseCicloDialog(BaseDialog):
         self.save_history_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(
             frame,
-            text="Salvar ciclo atual no histórico",
+            text=_("Salvar ciclo atual no histórico"),
             variable=self.save_history_var,
             command=self._toggle_save_history,
         ).pack(anchor="w", pady=(0, 8))
 
-        ttk.Label(frame, text="Rótulo do ciclo (ex: 1º Semestre 2025):").pack(anchor="w", pady=(0, 4))
+        ttk.Label(frame, text=_("Rótulo do ciclo (ex: 1º Semestre 2025):")).pack(anchor="w", pady=(0, 4))
         self.label_var = tk.StringVar(value=self._initial_label)
         self.label_entry = ttk.Entry(frame, textvariable=self.label_var, width=36)
         self.label_entry.pack(fill=tk.X, pady=4)
@@ -1521,47 +1522,47 @@ class CloseCicloDialog(BaseDialog):
         ).pack(anchor="w")
         if self._show_retention_options:
             ttk.Label(
-                frame, text="• Dados não marcados serão limpos no novo ciclo.", foreground="gray"
+                frame, text=_("• Dados não marcados serão limpos no novo ciclo."), foreground="gray"
             ).pack(anchor="w")
 
-            keep_frame = ttk.LabelFrame(frame, text="Manter no novo ciclo", padding=8)
+            keep_frame = ttk.LabelFrame(frame, text=_("Manter no novo ciclo"), padding=8)
             keep_frame.pack(fill=tk.X, pady=8)
 
             ttk.Checkbutton(
                 keep_frame,
-                text="Faltas dos acólitos",
+                text=_("Faltas dos acólitos"),
                 variable=self.keep_absences_var,
             ).pack(anchor="w")
             ttk.Checkbutton(
                 keep_frame,
-                text="Contagem e histórico de escalas",
+                text=_("Contagem e histórico de escalas"),
                 variable=self.keep_schedule_data_var,
             ).pack(anchor="w")
             ttk.Checkbutton(
                 keep_frame,
-                text="Histórico de atividades",
+                text=_("Histórico de atividades"),
                 variable=self.keep_event_history_var,
             ).pack(anchor="w")
             ttk.Checkbutton(
                 keep_frame,
-                text="Bônus e movimentações de bônus",
+                text=_("Bônus e movimentações de bônus"),
                 variable=self.keep_bonus_var,
             ).pack(anchor="w")
             ttk.Checkbutton(
                 keep_frame,
-                text="Cards rascunho de Convocação",
+                text=_("Cards rascunho de Convocação"),
                 variable=self.keep_draft_cards_var,
             ).pack(anchor="w")
             ttk.Checkbutton(
                 keep_frame,
-                text="Convocações/atividades finalizadas do ciclo atual",
+                text=_("Convocações/atividades finalizadas do ciclo atual"),
                 variable=self.keep_finalized_history_var,
             ).pack(anchor="w")
 
         btn_frame = ttk.Frame(frame)
         btn_frame.pack(pady=10)
         ttk.Button(btn_frame, text=self._action_text, command=self._ok).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Cancelar"), command=self._cancel).pack(side=tk.LEFT, padx=4)
 
         self._toggle_save_history()
 
@@ -1604,21 +1605,21 @@ class BirthdaySettingsDialog(BaseDialog):
 
         ttk.Label(
             frame,
-            text="Configurações de Aniversário Automático",
+            text=_("Configurações de Aniversário Automático"),
             font=("TkDefaultFont", 11, "bold"),
         ).pack(anchor="w", pady=(0, 8))
 
         ttk.Label(
             frame,
-            text='Ao ativar, o sistema pode enviar automaticamente uma mensagem\n'
-                 'de "feliz aniversário" em um grupo do WhatsApp Web.',
+            text=(_('Ao ativar, o sistema pode enviar automaticamente uma mensagem\n'
+                 'de "feliz aniversário" em um grupo do WhatsApp Web.')),
             foreground="gray",
         ).pack(anchor="w", pady=(0, 8))
 
         self.enabled_var = tk.BooleanVar(value=self._settings.get("enabled", False))
         self._enabled_check = ttk.Checkbutton(
             frame,
-            text="Ativar envio automático de feliz aniversário (temporariamente desativado)",
+            text=_("Ativar envio automático de feliz aniversário (temporariamente desativado)"),
             variable=self.enabled_var,
             state=tk.DISABLED,
         )
@@ -1630,14 +1631,14 @@ class BirthdaySettingsDialog(BaseDialog):
         sep = ttk.Separator(frame, orient=tk.HORIZONTAL)
         sep.pack(fill=tk.X, pady=8)
 
-        ttk.Label(frame, text="Nome do grupo no WhatsApp Web:").pack(anchor="w", pady=(4, 0))
+        ttk.Label(frame, text=_("Nome do grupo no WhatsApp Web:")).pack(anchor="w", pady=(4, 0))
         self.group_var = tk.StringVar(value=self._settings.get("whatsapp_group", ""))
         ttk.Entry(frame, textvariable=self.group_var, width=40).pack(fill=tk.X, pady=4)
 
-        ttk.Label(frame, text="Mensagem de aniversário:").pack(anchor="w", pady=(4, 0))
+        ttk.Label(frame, text=_("Mensagem de aniversário:")).pack(anchor="w", pady=(4, 0))
         ttk.Label(
             frame,
-            text="Use {nome} para inserir o nome do acólito.",
+            text=_("Use {nome} para inserir o nome do acólito."),
             foreground="gray",
         ).pack(anchor="w")
         self.message_text = tk.Text(frame, width=40, height=4, font=("TkDefaultFont", 10))
@@ -1647,14 +1648,14 @@ class BirthdaySettingsDialog(BaseDialog):
             self._settings.get("message_template", "Feliz aniversário, {nome}! 🎂🎉"),
         )
 
-        ttk.Label(frame, text="Horário de envio (HH:MM):").pack(anchor="w", pady=(4, 0))
+        ttk.Label(frame, text=_("Horário de envio (HH:MM):")).pack(anchor="w", pady=(4, 0))
         self.time_var = tk.StringVar(value=self._settings.get("send_time", "08:00"))
         ttk.Entry(frame, textvariable=self.time_var, width=10).pack(anchor="w", pady=4)
 
         btn_frame = ttk.Frame(frame)
         btn_frame.pack(pady=10)
-        ttk.Button(btn_frame, text="Salvar", command=self._ok).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Salvar"), command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Cancelar"), command=self._cancel).pack(side=tk.LEFT, padx=4)
 
     def _ok(self):
         send_time = self.time_var.get().strip()
@@ -1696,7 +1697,7 @@ class BirthdayWeekDialog(BaseDialog):
 
         ttk.Label(
             frame,
-            text="Aniversariantes desta semana:",
+            text=_("Aniversariantes desta semana:"),
             font=("TkDefaultFont", 11, "bold"),
         ).pack(anchor="w", pady=(0, 8))
 
@@ -1710,13 +1711,13 @@ class BirthdayWeekDialog(BaseDialog):
             self._mute_vars.append((item.get("id", ""), mute_var))
             ttk.Checkbutton(
                 item_frame,
-                text="Não mostrar novamente este aniversário",
+                text=_("Não mostrar novamente este aniversário"),
                 variable=mute_var,
             ).pack(anchor="w", padx=18)
 
         btn_frame = ttk.Frame(frame)
         btn_frame.pack(pady=(12, 0))
-        ttk.Button(btn_frame, text="Fechar", command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Fechar"), command=self._ok).pack(side=tk.LEFT, padx=4)
 
     def _ok(self):
         self.result = [acolyte_id for acolyte_id, var in self._mute_vars if acolyte_id and var.get()]

@@ -1,3 +1,4 @@
+from ..i18n import _
 """Aba de gerenciamento de acólitos."""
 
 import sys
@@ -63,8 +64,8 @@ class AcolytesTab(ttk.Frame):
         left = ttk.Frame(paned, padding=4)
         paned.add(left, minsize=200)
 
-        ttk.Button(left, text="➕ Adicionar Acólito", command=self._add_acolyte).pack(fill=tk.X, pady=4)
-        ttk.Button(left, text="🗑️ Remover Acólito", command=self._remove_acolyte).pack(fill=tk.X, pady=2)
+        ttk.Button(left, text=_("➕ Adicionar Acólito"), command=self._add_acolyte).pack(fill=tk.X, pady=4)
+        ttk.Button(left, text=_("🗑️ Remover Acólito"), command=self._remove_acolyte).pack(fill=tk.X, pady=2)
 
         list_frame = ttk.Frame(left)
         list_frame.pack(fill=tk.BOTH, expand=True, pady=4)
@@ -83,7 +84,7 @@ class AcolytesTab(ttk.Frame):
 
         # Botões do rodapé
         ttk.Separator(left, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=4)
-        cycle_name_frame = ttk.LabelFrame(left, text="Ciclo Atual", padding=4)
+        cycle_name_frame = ttk.LabelFrame(left, text=_("Ciclo Atual"), padding=4)
         cycle_name_frame.pack(fill=tk.X, pady=2)
         self.current_cycle_name_var = tk.StringVar(value=self.app.current_cycle_name)
         self.current_cycle_name_entry = ttk.Entry(
@@ -93,9 +94,9 @@ class AcolytesTab(ttk.Frame):
         self.current_cycle_name_entry.pack(fill=tk.X)
         self.current_cycle_name_entry.bind("<FocusOut>", lambda _e: self._save_current_cycle_name())
         self.current_cycle_name_entry.bind("<Return>", lambda _e: self._save_current_cycle_name())
-        ttk.Button(left, text="📊 Visão Geral", command=self._show_overview_table).pack(fill=tk.X, pady=2)
-        ttk.Button(left, text="📕 Fechar Ciclo", command=self._close_cycle).pack(fill=tk.X, pady=2)
-        ttk.Button(left, text="📄 Gerar Relatório PDF", command=self._generate_report).pack(fill=tk.X, pady=2)
+        ttk.Button(left, text=_("📊 Visão Geral"), command=self._show_overview_table).pack(fill=tk.X, pady=2)
+        ttk.Button(left, text=_("📕 Fechar Ciclo"), command=self._close_cycle).pack(fill=tk.X, pady=2)
+        ttk.Button(left, text=_("📄 Gerar Relatório PDF"), command=self._generate_report).pack(fill=tk.X, pady=2)
 
         # --- Painel direito ---
         self.right = ttk.Frame(paned, padding=6)
@@ -108,7 +109,7 @@ class AcolytesTab(ttk.Frame):
     def _build_detail_panel(self):
         """Constrói o painel de detalhes do acólito."""
         self.no_selection_label = ttk.Label(
-            self.right, text="Selecione um acólito para ver os detalhes.", foreground="gray"
+            self.right, text=_("Selecione um acólito para ver os detalhes."), foreground="gray"
         )
         self.no_selection_label.pack(pady=20)
 
@@ -123,12 +124,12 @@ class AcolytesTab(ttk.Frame):
         # Data de nascimento
         bd_frame = ttk.Frame(self.detail_frame)
         bd_frame.pack(anchor="w", pady=2)
-        ttk.Label(bd_frame, text="Nascimento:").pack(side=tk.LEFT)
+        ttk.Label(bd_frame, text=_("Nascimento:")).pack(side=tk.LEFT)
         self.birthdate_var = tk.StringVar()
         ttk.Entry(
             bd_frame, textvariable=self.birthdate_var, width=12
         ).pack(side=tk.LEFT, padx=4)
-        ttk.Button(bd_frame, text="Salvar", command=self._save_birthdate, width=6).pack(
+        ttk.Button(bd_frame, text=_("Salvar"), command=self._save_birthdate, width=6).pack(
             side=tk.LEFT, padx=2
         )
         self.birthdate_display = ttk.Label(bd_frame, text="", foreground="#555")
@@ -139,22 +140,22 @@ class AcolytesTab(ttk.Frame):
         actions.pack(fill=tk.X, pady=6)
 
         # Suspensão
-        susp_frame = ttk.LabelFrame(actions, text="Suspensão", padding=4)
+        susp_frame = ttk.LabelFrame(actions, text=_("Suspensão"), padding=4)
         susp_frame.pack(side=tk.LEFT, padx=4)
-        ttk.Button(susp_frame, text="Suspender", command=self._suspend).pack(side=tk.LEFT, padx=2)
-        ttk.Button(susp_frame, text="Levantar Suspensão", command=self._lift_suspension).pack(side=tk.LEFT, padx=2)
+        ttk.Button(susp_frame, text=_("Suspender"), command=self._suspend).pack(side=tk.LEFT, padx=2)
+        ttk.Button(susp_frame, text=_("Levantar Suspensão"), command=self._lift_suspension).pack(side=tk.LEFT, padx=2)
 
         # Faltas
-        abs_frame = ttk.LabelFrame(actions, text="Faltas", padding=4)
+        abs_frame = ttk.LabelFrame(actions, text=_("Faltas"), padding=4)
         abs_frame.pack(side=tk.LEFT, padx=4)
-        ttk.Button(abs_frame, text="Registrar Falta", command=self._add_absence).pack()
+        ttk.Button(abs_frame, text=_("Registrar Falta"), command=self._add_absence).pack()
 
         # Bônus
-        bonus_frame = ttk.LabelFrame(actions, text="Bônus", padding=4)
+        bonus_frame = ttk.LabelFrame(actions, text=_("Bônus"), padding=4)
         bonus_frame.pack(side=tk.LEFT, padx=4)
-        ttk.Button(bonus_frame, text="Dar Bônus", command=self._give_bonus).pack(side=tk.LEFT, padx=2)
-        ttk.Button(bonus_frame, text="Usar Bônus", command=self._use_bonus).pack(side=tk.LEFT, padx=2)
-        ttk.Label(bonus_frame, text="Qtd:").pack(side=tk.LEFT, padx=(6, 0))
+        ttk.Button(bonus_frame, text=_("Dar Bônus"), command=self._give_bonus).pack(side=tk.LEFT, padx=2)
+        ttk.Button(bonus_frame, text=_("Usar Bônus"), command=self._use_bonus).pack(side=tk.LEFT, padx=2)
+        ttk.Label(bonus_frame, text=_("Qtd:")).pack(side=tk.LEFT, padx=(6, 0))
         self.bonus_direct_var = tk.StringVar(value="0")
         self.bonus_spin = tk.Spinbox(
             bonus_frame,
@@ -179,13 +180,13 @@ class AcolytesTab(ttk.Frame):
         self._tab_unavailabilities = ttk.Frame(self.detail_notebook)
         self._tab_internal_notes = ttk.Frame(self.detail_notebook)
 
-        self.detail_notebook.add(self._tab_schedule, text="Histórico de Escalas")
-        self.detail_notebook.add(self._tab_events, text="Atividades")
-        self.detail_notebook.add(self._tab_absences, text="Faltas")
-        self.detail_notebook.add(self._tab_suspensions, text="Suspensões")
-        self.detail_notebook.add(self._tab_bonus, text="Movimentação de Bônus")
-        self.detail_notebook.add(self._tab_unavailabilities, text="Indisponibilidades")
-        self.detail_notebook.add(self._tab_internal_notes, text="Notas Internas")
+        self.detail_notebook.add(self._tab_schedule, text=_("Histórico de Escalas"))
+        self.detail_notebook.add(self._tab_events, text=_("Atividades"))
+        self.detail_notebook.add(self._tab_absences, text=_("Faltas"))
+        self.detail_notebook.add(self._tab_suspensions, text=_("Suspensões"))
+        self.detail_notebook.add(self._tab_bonus, text=_("Movimentação de Bônus"))
+        self.detail_notebook.add(self._tab_unavailabilities, text=_("Indisponibilidades"))
+        self.detail_notebook.add(self._tab_internal_notes, text=_("Notas Internas"))
 
         notes_container = ttk.Frame(self._tab_internal_notes, padding=6)
         notes_container.pack(fill=tk.BOTH, expand=True)
@@ -222,12 +223,12 @@ class AcolytesTab(ttk.Frame):
         )
         sched_btn_frame = ttk.Frame(self._tab_schedule)
         sched_btn_frame.pack(fill=tk.X, pady=2)
-        ttk.Button(sched_btn_frame, text="➕ Adicionar Entrada", command=self._add_schedule_entry).pack(side=tk.LEFT, padx=2)
-        ttk.Button(sched_btn_frame, text="🗑️ Excluir Entrada", command=self._delete_schedule_entry).pack(side=tk.LEFT, padx=2)
-        ttk.Button(sched_btn_frame, text="⚠️ Marcar/Desmarcar Faltou", command=self._toggle_schedule_missed).pack(side=tk.LEFT, padx=2)
+        ttk.Button(sched_btn_frame, text=_("➕ Adicionar Entrada"), command=self._add_schedule_entry).pack(side=tk.LEFT, padx=2)
+        ttk.Button(sched_btn_frame, text=_("🗑️ Excluir Entrada"), command=self._delete_schedule_entry).pack(side=tk.LEFT, padx=2)
+        ttk.Button(sched_btn_frame, text=_("⚠️ Marcar/Desmarcar Faltou"), command=self._toggle_schedule_missed).pack(side=tk.LEFT, padx=2)
         ttk.Button(
             sched_btn_frame,
-            text="🏷️ Marcar/Desmarcar Falta simbólica",
+            text=_("🏷️ Marcar/Desmarcar Falta simbólica"),
             command=self._toggle_schedule_symbolic_missed,
         ).pack(side=tk.LEFT, padx=2)
 
@@ -236,12 +237,12 @@ class AcolytesTab(ttk.Frame):
         )
         event_btn_frame = ttk.Frame(self._tab_events)
         event_btn_frame.pack(fill=tk.X, pady=2)
-        ttk.Button(event_btn_frame, text="➕ Adicionar Entrada", command=self._add_event_entry).pack(side=tk.LEFT, padx=2)
-        ttk.Button(event_btn_frame, text="🗑️ Excluir Entrada", command=self._delete_event_entry).pack(side=tk.LEFT, padx=2)
-        ttk.Button(event_btn_frame, text="⚠️ Marcar/Desmarcar Faltou", command=self._toggle_event_missed).pack(side=tk.LEFT, padx=2)
+        ttk.Button(event_btn_frame, text=_("➕ Adicionar Entrada"), command=self._add_event_entry).pack(side=tk.LEFT, padx=2)
+        ttk.Button(event_btn_frame, text=_("🗑️ Excluir Entrada"), command=self._delete_event_entry).pack(side=tk.LEFT, padx=2)
+        ttk.Button(event_btn_frame, text=_("⚠️ Marcar/Desmarcar Faltou"), command=self._toggle_event_missed).pack(side=tk.LEFT, padx=2)
         ttk.Button(
             event_btn_frame,
-            text="🏷️ Marcar/Desmarcar Falta simbólica",
+            text=_("🏷️ Marcar/Desmarcar Falta simbólica"),
             command=self._toggle_event_symbolic_missed,
         ).pack(side=tk.LEFT, padx=2)
 
@@ -250,15 +251,15 @@ class AcolytesTab(ttk.Frame):
         )
         abs_btn_frame = ttk.Frame(self._tab_absences)
         abs_btn_frame.pack(fill=tk.X, pady=2)
-        ttk.Button(abs_btn_frame, text="✏️ Editar Falta", command=self._edit_absence).pack(side=tk.LEFT, padx=2)
-        ttk.Button(abs_btn_frame, text="🗑️ Excluir Falta", command=self._delete_absence).pack(side=tk.LEFT, padx=2)
+        ttk.Button(abs_btn_frame, text=_("✏️ Editar Falta"), command=self._edit_absence).pack(side=tk.LEFT, padx=2)
+        ttk.Button(abs_btn_frame, text=_("🗑️ Excluir Falta"), command=self._delete_absence).pack(side=tk.LEFT, padx=2)
         self._tree_suspensions = self._make_tree(
             self._tab_suspensions, ("Motivo", "Início", "Fim", "Ativa"), (180, 100, 100, 60)
         )
         susp_btn_frame = ttk.Frame(self._tab_suspensions)
         susp_btn_frame.pack(fill=tk.X, pady=2)
-        ttk.Button(susp_btn_frame, text="✏️ Editar Suspensão", command=self._edit_suspension).pack(side=tk.LEFT, padx=2)
-        ttk.Button(susp_btn_frame, text="🗑️ Excluir Suspensão", command=self._delete_suspension).pack(side=tk.LEFT, padx=2)
+        ttk.Button(susp_btn_frame, text=_("✏️ Editar Suspensão"), command=self._edit_suspension).pack(side=tk.LEFT, padx=2)
+        ttk.Button(susp_btn_frame, text=_("🗑️ Excluir Suspensão"), command=self._delete_suspension).pack(side=tk.LEFT, padx=2)
 
         self._tree_bonus = self._make_tree(
             self._tab_bonus, ("Tipo", "Quantidade", "Descrição", "Data"), (70, 80, 220, 90)
@@ -267,12 +268,12 @@ class AcolytesTab(ttk.Frame):
         bonus_btn_frame.pack(fill=tk.X, pady=2)
         ttk.Button(
             bonus_btn_frame,
-            text="✏️ Editar Movimentação",
+            text=_("✏️ Editar Movimentação"),
             command=self._edit_bonus_movement,
         ).pack(side=tk.LEFT, padx=2)
         ttk.Button(
             bonus_btn_frame,
-            text="🗑️ Excluir Movimentação",
+            text=_("🗑️ Excluir Movimentação"),
             command=self._delete_bonus_movement,
         ).pack(side=tk.LEFT, padx=2)
 
@@ -285,10 +286,10 @@ class AcolytesTab(ttk.Frame):
         )
         unav_btn_frame = ttk.Frame(self._tab_unavailabilities)
         unav_btn_frame.pack(fill=tk.X, pady=2)
-        ttk.Button(unav_btn_frame, text="➕ Semanal", command=self._add_unavailability).pack(side=tk.LEFT, padx=2)
-        ttk.Button(unav_btn_frame, text="➕ Temporária", command=self._add_temp_unavailability).pack(side=tk.LEFT, padx=2)
-        ttk.Button(unav_btn_frame, text="✏️ Editar", command=self._edit_unavailability).pack(side=tk.LEFT, padx=2)
-        ttk.Button(unav_btn_frame, text="🗑️ Excluir", command=self._delete_unavailability).pack(side=tk.LEFT, padx=2)
+        ttk.Button(unav_btn_frame, text=_("➕ Semanal"), command=self._add_unavailability).pack(side=tk.LEFT, padx=2)
+        ttk.Button(unav_btn_frame, text=_("➕ Temporária"), command=self._add_temp_unavailability).pack(side=tk.LEFT, padx=2)
+        ttk.Button(unav_btn_frame, text=_("✏️ Editar"), command=self._edit_unavailability).pack(side=tk.LEFT, padx=2)
+        ttk.Button(unav_btn_frame, text=_("🗑️ Excluir"), command=self._delete_unavailability).pack(side=tk.LEFT, padx=2)
 
     def _make_tree(self, parent, columns, widths) -> ttk.Treeview:
         frame = ttk.Frame(parent)
@@ -765,14 +766,14 @@ class AcolytesTab(ttk.Frame):
     def _remove_acolyte(self):
         sel = self.acolyte_listbox.curselection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione um acólito para remover.")
+            messagebox.showinfo(_("Aviso"), _("Selecione um acólito para remover."))
             return
         idx = sel[0]
         sorted_acs = sorted(self.app.acolytes, key=lambda a: a.name.lower())
         if idx >= len(sorted_acs):
             return
         ac = sorted_acs[idx]
-        if not messagebox.askyesno("Confirmar", f"Remover o acólito '{ac.name}'?"):
+        if not messagebox.askyesno(_("Confirmar"), f_("Remover o acólito '{ac.name}'?")):
             return
         self.app.acolytes.remove(ac)
         self._current_acolyte = None
@@ -812,7 +813,7 @@ class AcolytesTab(ttk.Frame):
         ac = self._current_acolyte
         active_suspensions = [s for s in ac.suspensions if s.is_active]
         if not active_suspensions:
-            messagebox.showinfo("Aviso", f"{ac.name} não possui suspensões ativas.")
+            messagebox.showinfo(_("Aviso"), f_("{ac.name} não possui suspensões ativas."))
             return
         dlg = SelectSuspensionsDialog(self.app.root, active_suspensions)
         if dlg.result:
@@ -830,7 +831,7 @@ class AcolytesTab(ttk.Frame):
             return
         sel = self._tree_suspensions.selection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione uma suspensão para editar.")
+            messagebox.showinfo(_("Aviso"), _("Selecione uma suspensão para editar."))
             return
         idx = self._tree_suspensions.index(sel[0])
         ac = self._current_acolyte
@@ -855,14 +856,14 @@ class AcolytesTab(ttk.Frame):
             return
         sel = self._tree_suspensions.selection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione uma suspensão para excluir.")
+            messagebox.showinfo(_("Aviso"), _("Selecione uma suspensão para excluir."))
             return
         idx = self._tree_suspensions.index(sel[0])
         ac = self._current_acolyte
         if idx >= len(ac.suspensions):
             return
         susp = ac.suspensions[idx]
-        if not messagebox.askyesno("Confirmar", f"Excluir a suspensão '{susp.reason}'?"):
+        if not messagebox.askyesno(_("Confirmar"), f_("Excluir a suspensão '{susp.reason}'?")):
             return
         ac.suspensions.pop(idx)
         ac.is_suspended = is_currently_suspended(ac)
@@ -892,7 +893,7 @@ class AcolytesTab(ttk.Frame):
             return
         sel = self._tree_absences.selection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione uma falta para editar.")
+            messagebox.showinfo(_("Aviso"), _("Selecione uma falta para editar."))
             return
         idx = self._tree_absences.index(sel[0])
         ac = self._current_acolyte
@@ -913,14 +914,14 @@ class AcolytesTab(ttk.Frame):
             return
         sel = self._tree_absences.selection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione uma falta para excluir.")
+            messagebox.showinfo(_("Aviso"), _("Selecione uma falta para excluir."))
             return
         idx = self._tree_absences.index(sel[0])
         ac = self._current_acolyte
         if idx >= len(ac.absences):
             return
         absence = ac.absences[idx]
-        if not messagebox.askyesno("Confirmar", f"Excluir falta de {absence.date}?"):
+        if not messagebox.askyesno(_("Confirmar"), f_("Excluir falta de {absence.date}?")):
             return
         self._clear_linked_missed_flag(ac, absence)
 
@@ -934,7 +935,7 @@ class AcolytesTab(ttk.Frame):
             return
         sel = self._tree_absences.selection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione uma falta para editar.")
+            messagebox.showinfo(_("Aviso"), _("Selecione uma falta para editar."))
             return
         idx = self._tree_absences.index(sel[0])
         ac = self._current_acolyte
@@ -943,7 +944,7 @@ class AcolytesTab(ttk.Frame):
         absence = ac.absences[idx]
         absence.is_symbolic = not absence.is_symbolic
         status = "(não contada)" if absence.is_symbolic else "(contada)"
-        messagebox.showinfo("Sucesso", f"Falta de {absence.date} agora é {status}")
+        messagebox.showinfo(_("Sucesso"), f_("Falta de {absence.date} agora é {status}"))
         self._show_acolyte_detail()
         self.app.save()
         self._refresh_calendar_views()
@@ -975,13 +976,13 @@ class AcolytesTab(ttk.Frame):
             return
         ac = self._current_acolyte
         if ac.bonus_count <= 0:
-            messagebox.showinfo("Aviso", f"{ac.name} não possui bônus.")
+            messagebox.showinfo(_("Aviso"), f_("{ac.name} não possui bônus."))
             return
         dlg = BonusDialog(self.app.root, "use")
         if dlg.result:
             amount, desc = dlg.result
             if amount > ac.bonus_count:
-                messagebox.showwarning("Aviso", f"Saldo insuficiente. {ac.name} tem {ac.bonus_count} bônus.")
+                messagebox.showwarning(_("Aviso"), f_("Saldo insuficiente. {ac.name} tem {ac.bonus_count} bônus."))
                 return
             ac.bonus_count -= amount
             movement = BonusMovement(
@@ -1029,7 +1030,7 @@ class AcolytesTab(ttk.Frame):
             return
         sel = self._tree_bonus.selection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione uma movimentação de bônus para editar.")
+            messagebox.showinfo(_("Aviso"), _("Selecione uma movimentação de bônus para editar."))
             return
 
         idx = self._tree_bonus.index(sel[0])
@@ -1067,7 +1068,7 @@ class AcolytesTab(ttk.Frame):
             return
         sel = self._tree_bonus.selection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione uma movimentação de bônus para excluir.")
+            messagebox.showinfo(_("Aviso"), _("Selecione uma movimentação de bônus para excluir."))
             return
 
         idx = self._tree_bonus.index(sel[0])
@@ -1127,14 +1128,14 @@ class AcolytesTab(ttk.Frame):
             return
         sel = self._tree_schedule.selection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione uma entrada de escala para excluir.")
+            messagebox.showinfo(_("Aviso"), _("Selecione uma entrada de escala para excluir."))
             return
         idx = self._tree_schedule.index(sel[0])
         ac = self._current_acolyte
         if idx >= len(ac.schedule_history):
             return
         entry = ac.schedule_history[idx]
-        if not messagebox.askyesno("Confirmar", f"Excluir entrada de escala ({entry.date} {entry.time})?"):
+        if not messagebox.askyesno(_("Confirmar"), f_("Excluir entrada de escala ({entry.date} {entry.time})?")):
             return
         self._sync_linked_absence(ac, "schedule", entry, False)
         ac.schedule_history.pop(idx)
@@ -1149,7 +1150,7 @@ class AcolytesTab(ttk.Frame):
             return
         sel = self._tree_schedule.selection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione uma entrada de escala para marcar/desmarcar falta.")
+            messagebox.showinfo(_("Aviso"), _("Selecione uma entrada de escala para marcar/desmarcar falta."))
             return
         idx = self._tree_schedule.index(sel[0])
         ac = self._current_acolyte
@@ -1186,14 +1187,14 @@ class AcolytesTab(ttk.Frame):
             return
         sel = self._tree_events.selection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione uma entrada de atividade para excluir.")
+            messagebox.showinfo(_("Aviso"), _("Selecione uma entrada de atividade para excluir."))
             return
         idx = self._tree_events.index(sel[0])
         ac = self._current_acolyte
         if idx >= len(ac.event_history):
             return
         entry = ac.event_history[idx]
-        if not messagebox.askyesno("Confirmar", f"Excluir entrada de atividade '{entry.name}'?"):
+        if not messagebox.askyesno(_("Confirmar"), f_("Excluir entrada de atividade '{entry.name}'?")):
             return
         self._sync_linked_absence(ac, "event", entry, False)
         ac.event_history.pop(idx)
@@ -1206,7 +1207,7 @@ class AcolytesTab(ttk.Frame):
             return
         sel = self._tree_events.selection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione uma entrada de atividade para marcar/desmarcar falta.")
+            messagebox.showinfo(_("Aviso"), _("Selecione uma entrada de atividade para marcar/desmarcar falta."))
             return
         idx = self._tree_events.index(sel[0])
         ac = self._current_acolyte
@@ -1239,7 +1240,7 @@ class AcolytesTab(ttk.Frame):
         if entry_type == "schedule":
             sel = self._tree_schedule.selection()
             if not sel:
-                messagebox.showinfo("Aviso", "Selecione uma entrada de escala.")
+                messagebox.showinfo(_("Aviso"), _("Selecione uma entrada de escala."))
                 return
             idx = self._tree_schedule.index(sel[0])
             if idx >= len(ac.schedule_history):
@@ -1249,7 +1250,7 @@ class AcolytesTab(ttk.Frame):
         else:
             sel = self._tree_events.selection()
             if not sel:
-                messagebox.showinfo("Aviso", "Selecione uma entrada de atividade.")
+                messagebox.showinfo(_("Aviso"), _("Selecione uma entrada de atividade."))
                 return
             idx = self._tree_events.index(sel[0])
             if idx >= len(ac.event_history):
@@ -1275,7 +1276,7 @@ class AcolytesTab(ttk.Frame):
             linked_absence = self._find_linked_absence(ac, entry_type, entry_id)
 
         if not linked_absence:
-            messagebox.showwarning("Aviso", "Não foi possível vincular a falta para esta entrada.")
+            messagebox.showwarning(_("Aviso"), _("Não foi possível vincular a falta para esta entrada."))
             return
 
         linked_absence.is_symbolic = True
@@ -1337,7 +1338,7 @@ class AcolytesTab(ttk.Frame):
             return
         sel = self._tree_unavailabilities.selection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione uma indisponibilidade para editar.")
+            messagebox.showinfo(_("Aviso"), _("Selecione uma indisponibilidade para editar."))
             return
         idx = self._tree_unavailabilities.index(sel[0])
         if idx >= len(self._unav_items):
@@ -1366,7 +1367,7 @@ class AcolytesTab(ttk.Frame):
             return
         sel = self._tree_unavailabilities.selection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione uma indisponibilidade para excluir.")
+            messagebox.showinfo(_("Aviso"), _("Selecione uma indisponibilidade para excluir."))
             return
         idx = self._tree_unavailabilities.index(sel[0])
         if idx >= len(self._unav_items):
@@ -1394,7 +1395,7 @@ class AcolytesTab(ttk.Frame):
     def _show_overview_table(self):
         """Show an overview table of all acolytes in the main panel."""
         if not self.app.acolytes:
-            messagebox.showinfo("Aviso", "Nenhum acólito cadastrado.")
+            messagebox.showinfo(_("Aviso"), _("Nenhum acólito cadastrado."))
             return
         self._current_acolyte = None
         self.acolyte_listbox.selection_clear(0, tk.END)
@@ -1408,7 +1409,7 @@ class AcolytesTab(ttk.Frame):
         self._overview_frame.pack(fill=tk.BOTH, expand=True)
 
         ttk.Label(
-            self._overview_frame, text="📊 Visão Geral dos Acólitos",
+            self._overview_frame, text=_("📊 Visão Geral dos Acólitos"),
             font=("TkDefaultFont", 12, "bold")
         ).pack(anchor="w", pady=(4, 8))
 
@@ -1510,7 +1511,7 @@ class AcolytesTab(ttk.Frame):
         overview_tree.bind("<Double-1>", _on_row_double_click)
 
         ttk.Button(
-            self._overview_frame, text="Fechar Visão Geral",
+            self._overview_frame, text=_("Fechar Visão Geral"),
             command=self._close_overview
         ).pack(pady=8)
 
@@ -1527,7 +1528,7 @@ class AcolytesTab(ttk.Frame):
 
     def _close_cycle(self):
         if not self.app.acolytes:
-            messagebox.showinfo("Aviso", "Nenhum acólito cadastrado.")
+            messagebox.showinfo(_("Aviso"), _("Nenhum acólito cadastrado."))
             return
         self._save_current_cycle_name()
         dlg = CloseCicloDialog(self.app.root, initial_label=self.app.current_cycle_name)
@@ -1585,13 +1586,13 @@ class AcolytesTab(ttk.Frame):
 
     def _generate_report(self):
         if not self.app.acolytes:
-            messagebox.showinfo("Aviso", "Nenhum acólito cadastrado.")
+            messagebox.showinfo(_("Aviso"), _("Nenhum acólito cadastrado."))
             return
         self._save_current_cycle_name()
         path = filedialog.asksaveasfilename(
             defaultextension=".pdf",
             filetypes=[("PDF", "*.pdf")],
-            title="Salvar relatório como",
+            title=_("Salvar relatório como"),
             initialfile="relatorio_acolitos.pdf",
         )
         if not path:
@@ -1611,10 +1612,10 @@ class AcolytesTab(ttk.Frame):
                 self.app.include_activity_table_per_acolyte,
                 self.app.current_cycle_name,
             )
-            if messagebox.askyesno("Sucesso", f"Relatório gerado em:\n{path}\n\nDeseja abrir o arquivo?"):
+            if messagebox.askyesno(_("Sucesso"), f_("Relatório gerado em:\n{path}\n\nDeseja abrir o arquivo?")):
                 self._open_file(path)
         except Exception as e:
-            messagebox.showerror("Erro", f"Falha ao gerar relatório:\n{e}")
+            messagebox.showerror(_("Erro"), f_("Falha ao gerar relatório:\n{e}"))
 
     def _open_file(self, path: str):
         """Abre o arquivo com o programa padrão do sistema."""

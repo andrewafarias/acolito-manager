@@ -1,3 +1,4 @@
+from ..i18n import _
 """Gerenciamento inline de atividades gerais."""
 
 import uuid
@@ -83,27 +84,27 @@ class ActivityCard(ttk.LabelFrame):
         row1 = ttk.Frame(self)
         row1.pack(fill=tk.X, pady=2)
 
-        ttk.Label(row1, text="Nome:").pack(side=tk.LEFT)
+        ttk.Label(row1, text=_("Nome:")).pack(side=tk.LEFT)
         self.name_var = tk.StringVar(value=self.event.name)
         self.name_var.trace_add("write", self._on_field_change)
         ttk.Entry(row1, textvariable=self.name_var, width=24).pack(side=tk.LEFT, padx=4)
 
-        ttk.Label(row1, text="Data:").pack(side=tk.LEFT, padx=(8, 0))
+        ttk.Label(row1, text=_("Data:")).pack(side=tk.LEFT, padx=(8, 0))
         self.date_var = tk.StringVar(value=self.event.date)
         self.date_var.trace_add("write", self._on_date_change)
         DateEntryFrame(row1, textvariable=self.date_var, width=8, date_format="DD/MM").pack(side=tk.LEFT, padx=4)
 
-        ttk.Label(row1, text="Hora:").pack(side=tk.LEFT, padx=(8, 0))
+        ttk.Label(row1, text=_("Hora:")).pack(side=tk.LEFT, padx=(8, 0))
         self.time_var = tk.StringVar(value=self.event.time)
         self.time_var.trace_add("write", self._on_field_change)
         TimeEntryFrame(row1, textvariable=self.time_var, width=8).pack(side=tk.LEFT, padx=4)
 
-        ttk.Button(row1, text="✕", width=3, command=self._remove_self).pack(side=tk.RIGHT)
+        ttk.Button(row1, text=_("✕"), width=3, command=self._remove_self).pack(side=tk.RIGHT)
 
         row2 = ttk.Frame(self)
         row2.pack(fill=tk.X, pady=(4, 2))
 
-        ttk.Label(row2, text="Dia:").pack(side=tk.LEFT)
+        ttk.Label(row2, text=_("Dia:")).pack(side=tk.LEFT)
         default_day = detect_weekday(self.event.date) or WEEKDAYS_PT[datetime.now().weekday()]
         self.day_var = tk.StringVar(value=default_day)
         self.day_combo = ttk.Combobox(
@@ -125,13 +126,13 @@ class ActivityCard(ttk.LabelFrame):
         row4 = ttk.Frame(self)
         row4.pack(fill=tk.X, pady=(2, 0))
 
-        ttk.Button(row4, text="✏️ Editar Excluídos", command=self._edit_included_acolytes).pack(side=tk.LEFT)
+        ttk.Button(row4, text=_("✏️ Editar Excluídos"), command=self._edit_included_acolytes).pack(side=tk.LEFT)
 
         self.include_in_message_var = tk.BooleanVar(value=self.event.include_in_message)
         self.include_in_message_var.trace_add("write", self._on_include_in_message_change)
         ttk.Checkbutton(
             row4,
-            text="Incluir na mensagem",
+            text=_("Incluir na mensagem"),
             variable=self.include_in_message_var,
         ).pack(side=tk.RIGHT)
 
@@ -177,13 +178,13 @@ class ActivityCard(ttk.LabelFrame):
             labels_frame.grid(row=0, column=0, sticky="w", pady=(2, 0))
             ttk.Label(
                 labels_frame,
-                text="excluído: ",
+                text=_("excluído: "),
                 font=("TkDefaultFont", 8),
                 foreground="gray",
             ).pack(side=tk.LEFT)
             ttk.Label(
                 labels_frame,
-                text=", ".join(excluded_names),
+                text=_(", ").join(excluded_names),
                 font=("TkDefaultFont", 8),
                 foreground="gray",
             ).pack(side=tk.LEFT)
@@ -315,7 +316,7 @@ class ActivitiesTab:
                 )
 
     def _remove_activity(self, ev: Activity):
-        if not messagebox.askyesno("Confirmar", f"Remover atividade '{ev.name}'?"):
+        if not messagebox.askyesno(_("Confirmar"), f_("Remover atividade '{ev.name}'?")):
             return
         self.app.general_events = [item for item in self.app.general_events if item.id != ev.id]
         self.schedule_tab.refresh_cards()

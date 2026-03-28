@@ -1,3 +1,4 @@
+from ..i18n import _
 """Widgets reutilizáveis: calendário, seletor de horário e campos compostos."""
 
 import calendar
@@ -63,17 +64,17 @@ class CalendarDialog(BaseDialog):
 
         nav = ttk.Frame(frame)
         nav.pack(fill=tk.X, pady=4)
-        ttk.Button(nav, text="◀", width=3, command=self._prev_month).pack(side=tk.LEFT)
+        ttk.Button(nav, text=_("◀"), width=3, command=self._prev_month).pack(side=tk.LEFT)
         self._month_label = ttk.Label(
             nav, text="", width=20, anchor="center", font=("TkDefaultFont", 10, "bold")
         )
         self._month_label.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        ttk.Button(nav, text="▶", width=3, command=self._next_month).pack(side=tk.RIGHT)
+        ttk.Button(nav, text=_("▶"), width=3, command=self._next_month).pack(side=tk.RIGHT)
 
         self._cal_frame = ttk.Frame(frame)
         self._cal_frame.pack(pady=4)
 
-        ttk.Button(frame, text="Cancelar", command=self._cancel).pack(pady=4)
+        ttk.Button(frame, text=_("Cancelar"), command=self._cancel).pack(pady=4)
 
         self._draw_calendar()
 
@@ -167,7 +168,7 @@ class DateEntryFrame(ttk.Frame):
         self._var = textvariable
         self._date_format = date_format
         ttk.Entry(self, textvariable=textvariable, width=width).pack(side=tk.LEFT)
-        ttk.Button(self, text="📅", width=3, command=self._open_calendar).pack(
+        ttk.Button(self, text=_("📅"), width=3, command=self._open_calendar).pack(
             side=tk.LEFT, padx=1
         )
 
@@ -219,7 +220,7 @@ class TimePickerDialog(BaseDialog):
         frame = ttk.Frame(self, padding=8)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(frame, text="Selecione o horário:", font=("TkDefaultFont", 10, "bold")).pack(
+        ttk.Label(frame, text=_("Selecione o horário:"), font=("TkDefaultFont", 10, "bold")).pack(
             pady=(0, 6)
         )
 
@@ -236,7 +237,7 @@ class TimePickerDialog(BaseDialog):
         time_frame = ttk.Frame(frame)
         time_frame.pack(pady=4)
 
-        ttk.Label(time_frame, text="Hora:").pack(side=tk.LEFT)
+        ttk.Label(time_frame, text=_("Hora:")).pack(side=tk.LEFT)
         self._hour_var = tk.StringVar(value=str(init_h))
         hour_spin = ttk.Spinbox(
             time_frame, from_=0, to=23, textvariable=self._hour_var,
@@ -244,7 +245,7 @@ class TimePickerDialog(BaseDialog):
         )
         hour_spin.pack(side=tk.LEFT, padx=2)
 
-        ttk.Label(time_frame, text=":").pack(side=tk.LEFT)
+        ttk.Label(time_frame, text=_(":")).pack(side=tk.LEFT)
 
         self._min_var = tk.StringVar(value=f"{init_m:02d}")
         min_spin = ttk.Spinbox(
@@ -256,7 +257,7 @@ class TimePickerDialog(BaseDialog):
         # Common times section
         common_label_frame = ttk.Frame(frame)
         common_label_frame.pack(fill=tk.X, pady=(8, 2))
-        ttk.Label(common_label_frame, text="Horários comuns:", foreground="gray").pack(side=tk.LEFT)
+        ttk.Label(common_label_frame, text=_("Horários comuns:"), foreground="gray").pack(side=tk.LEFT)
 
         self._common_times_frame = ttk.Frame(frame)
         self._common_times_frame.pack(fill=tk.X, pady=(2, 4))
@@ -266,14 +267,14 @@ class TimePickerDialog(BaseDialog):
         manage_frame.pack(fill=tk.X, pady=4)
         self._new_time_var = tk.StringVar()
         ttk.Entry(manage_frame, textvariable=self._new_time_var, width=7).pack(side=tk.LEFT, padx=2)
-        ttk.Button(manage_frame, text="+", width=3, command=self._add_common_time).pack(side=tk.LEFT, padx=1)
+        ttk.Button(manage_frame, text=_("+"), width=3, command=self._add_common_time).pack(side=tk.LEFT, padx=1)
 
         self._render_common_times()
 
         btn_frame = ttk.Frame(frame)
         btn_frame.pack(pady=8)
-        ttk.Button(btn_frame, text="Confirmar", command=self._ok).pack(side=tk.LEFT, padx=4)
-        ttk.Button(btn_frame, text="Cancelar", command=self._cancel).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Confirmar"), command=self._ok).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text=_("Cancelar"), command=self._cancel).pack(side=tk.LEFT, padx=4)
 
     def _save_common_times(self, times):
         if self._app is not None:
@@ -288,7 +289,7 @@ class TimePickerDialog(BaseDialog):
         if not times:
             ttk.Label(
                 self._common_times_frame,
-                text="Nenhum horário comum cadastrado.",
+                text=_("Nenhum horário comum cadastrado."),
                 foreground="gray",
             ).pack(anchor="w")
             return
@@ -308,7 +309,7 @@ class TimePickerDialog(BaseDialog):
             ).pack(side=tk.LEFT)
             ttk.Button(
                 item_frame,
-                text="x",
+                text=_("x"),
                 width=2,
                 command=lambda t=time_str: self._remove_common_time(t),
             ).pack(side=tk.LEFT, padx=(2, 0))
@@ -368,7 +369,7 @@ class TimeEntryFrame(ttk.Frame):
         super().__init__(parent, **kwargs)
         self._var = textvariable
         ttk.Entry(self, textvariable=textvariable, width=width).pack(side=tk.LEFT)
-        ttk.Button(self, text="🕐", width=3, command=self._open_time_picker).pack(
+        ttk.Button(self, text=_("🕐"), width=3, command=self._open_time_picker).pack(
             side=tk.LEFT, padx=1
         )
 

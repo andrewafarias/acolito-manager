@@ -1,3 +1,4 @@
+from ..i18n import _
 """Aba de histórico de convocações e atividades finalizadas."""
 
 import os
@@ -26,8 +27,8 @@ class HistoryTab(ttk.Frame):
 
         self._merged_frame = ttk.Frame(nb)
         self._ciclo_frame = ttk.Frame(nb)
-        nb.add(self._merged_frame, text="📚 Convocações")
-        nb.add(self._ciclo_frame, text="🔄 Histórico de Ciclos")
+        nb.add(self._merged_frame, text=_("📚 Convocações"))
+        nb.add(self._ciclo_frame, text=_("🔄 Histórico de Ciclos"))
 
         self._build_merged_history()
         self._build_ciclo_history()
@@ -47,7 +48,7 @@ class HistoryTab(ttk.Frame):
         left = ttk.Frame(paned, padding=4)
         paned.add(left, minsize=260)
 
-        ttk.Label(left, text="Convocações", font=("TkDefaultFont", 11, "bold")).pack(pady=4)
+        ttk.Label(left, text=_("Convocações"), font=("TkDefaultFont", 11, "bold")).pack(pady=4)
 
         list_frame = ttk.Frame(left)
         list_frame.pack(fill=tk.BOTH, expand=True)
@@ -58,10 +59,10 @@ class HistoryTab(ttk.Frame):
         sb.config(command=self._merged_listbox.yview)
         self._merged_listbox.bind("<<ListboxSelect>>", self._on_merged_select)
 
-        ttk.Button(left, text="✏️ Editar Convocação", command=self._edit_schedule).pack(
+        ttk.Button(left, text=_("✏️ Editar Convocação"), command=self._edit_schedule).pack(
             fill=tk.X, pady=2
         )
-        ttk.Button(left, text="🗑️ Excluir Lote", command=self._delete_merged_batch).pack(
+        ttk.Button(left, text=_("🗑️ Excluir Lote"), command=self._delete_merged_batch).pack(
             fill=tk.X, pady=4
         )
 
@@ -69,7 +70,7 @@ class HistoryTab(ttk.Frame):
         paned.add(right, minsize=400)
 
         self._merged_detail_label = ttk.Label(
-            right, text="Selecione uma convocação para ver os detalhes.", foreground="gray"
+            right, text=_("Selecione uma convocação para ver os detalhes."), foreground="gray"
         )
         self._merged_detail_label.pack(pady=20)
 
@@ -81,10 +82,10 @@ class HistoryTab(ttk.Frame):
         sched_header = ttk.Frame(self._merged_sched_section)
         sched_header.pack(fill=tk.X)
         ttk.Label(
-            sched_header, text="Texto da Convocação:", font=("TkDefaultFont", 10, "bold")
+            sched_header, text=_("Texto da Convocação:"), font=("TkDefaultFont", 10, "bold")
         ).pack(side=tk.LEFT, anchor="w")
         ttk.Button(
-            sched_header, text="📋 Copiar", command=self._copy_schedule_text
+            sched_header, text=_("📋 Copiar"), command=self._copy_schedule_text
         ).pack(side=tk.RIGHT, padx=2)
 
         txt_frame = ttk.Frame(self._merged_sched_section)
@@ -102,7 +103,7 @@ class HistoryTab(ttk.Frame):
         self._merged_units_section = ttk.Frame(self._merged_detail_frame)
 
         ttk.Label(
-            self._merged_units_section, text="Itens da Convocação:", font=("TkDefaultFont", 10, "bold")
+            self._merged_units_section, text=_("Itens da Convocação:"), font=("TkDefaultFont", 10, "bold")
         ).pack(anchor="w", pady=(6, 2))
 
         units_frame = ttk.Frame(self._merged_units_section)
@@ -126,7 +127,7 @@ class HistoryTab(ttk.Frame):
         units_btn_frame = ttk.Frame(self._merged_units_section)
         units_btn_frame.pack(fill=tk.X, pady=4)
         ttk.Button(
-            units_btn_frame, text="🗑️ Excluir Unidade Selecionada", command=self._delete_unit_entry
+            units_btn_frame, text=_("🗑️ Excluir Unidade Selecionada"), command=self._delete_unit_entry
         ).pack(side=tk.LEFT, padx=2)
 
     # --------------------------------------------------------------------- #
@@ -320,7 +321,7 @@ class HistoryTab(ttk.Frame):
         txt.insert(tk.END, "\n".join(lines))
         txt.config(state=tk.DISABLED)
 
-        ttk.Button(frame, text="Fechar", command=dlg.destroy).pack(anchor="e", pady=(8, 0))
+        ttk.Button(frame, text=_("Fechar"), command=dlg.destroy).pack(anchor="e", pady=(8, 0))
 
     # --------------------------------------------------------------------- #
     #  Copy Schedule Text
@@ -341,7 +342,7 @@ class HistoryTab(ttk.Frame):
         """Load a generated convocation back into the main tab for editing."""
         sel = self._merged_listbox.curselection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione uma convocação para editar.")
+            messagebox.showinfo(_("Aviso"), _("Selecione uma convocação para editar."))
             return
         idx = sel[0]
         if idx >= len(self._merged_items):
@@ -350,7 +351,7 @@ class HistoryTab(ttk.Frame):
         gs = item["schedule"]
         fb = item["batch"]
         if gs is None:
-            messagebox.showinfo("Aviso", "Este lote não possui convocação para editar.")
+            messagebox.showinfo(_("Aviso"), _("Este lote não possui convocação para editar."))
             return
         if not messagebox.askyesno(
             "Editar Convocação",
@@ -468,7 +469,7 @@ class HistoryTab(ttk.Frame):
 
         # Switch to schedule tab
         self.app.notebook.select(self.app.schedule_tab)
-        messagebox.showinfo("Concluído", "Convocação carregada para edição na aba 'Convocação'.")
+        messagebox.showinfo(_("Concluído"), _("Convocação carregada para edição na aba 'Convocação'."))
 
     # --------------------------------------------------------------------- #
     #  Delete Batch (schedule + activities together)
@@ -477,7 +478,7 @@ class HistoryTab(ttk.Frame):
     def _delete_merged_batch(self):
         sel = self._merged_listbox.curselection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione um lote para excluir.")
+            messagebox.showinfo(_("Aviso"), _("Selecione um lote para excluir."))
             return
         idx = sel[0]
         if idx >= len(self._merged_items):
@@ -533,13 +534,13 @@ class HistoryTab(ttk.Frame):
         self._merged_detail_frame.pack_forget()
         self.app.acolytes_tab.refresh_list()
         self.app.schedule_tab.refresh_acolyte_list()
-        messagebox.showinfo("Concluído", "Lote excluído e contagens revertidas.")
+        messagebox.showinfo(_("Concluído"), _("Lote excluído e contagens revertidas."))
 
     def _delete_unit_entry(self):
         """Delete a single unit (schedule slot or event entry) from the selected batch."""
         sel = self._merged_listbox.curselection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione um lote.")
+            messagebox.showinfo(_("Aviso"), _("Selecione um lote."))
             return
         idx = sel[0]
         if idx >= len(self._merged_items):
@@ -547,7 +548,7 @@ class HistoryTab(ttk.Frame):
 
         tree_sel = self._merged_units_tree.selection()
         if not tree_sel:
-            messagebox.showinfo("Aviso", "Selecione uma unidade para excluir.")
+            messagebox.showinfo(_("Aviso"), _("Selecione uma unidade para excluir."))
             return
         unit_idx = self._merged_units_tree.index(tree_sel[0])
         if unit_idx >= len(self._units_data):
@@ -578,7 +579,7 @@ class HistoryTab(ttk.Frame):
                 self._on_merged_select()
                 self.app.acolytes_tab.refresh_list()
                 self.app.schedule_tab.refresh_acolyte_list()
-                messagebox.showinfo("Concluído", "Unidade excluída do lote.")
+                messagebox.showinfo(_("Concluído"), _("Unidade excluída do lote."))
                 return
 
             for aid in slot.acolyte_ids:
@@ -624,7 +625,7 @@ class HistoryTab(ttk.Frame):
         self._on_merged_select()
         self.app.acolytes_tab.refresh_list()
         self.app.schedule_tab.refresh_acolyte_list()
-        messagebox.showinfo("Concluído", "Unidade excluída do lote.")
+        messagebox.showinfo(_("Concluído"), _("Unidade excluída do lote."))
 
     # --------------------------------------------------------------------- #
     #  Ciclo History
@@ -640,7 +641,7 @@ class HistoryTab(ttk.Frame):
         left = ttk.Frame(paned, padding=4)
         paned.add(left, minsize=260)
 
-        ttk.Label(left, text="Histórico de Ciclos", font=("TkDefaultFont", 11, "bold")).pack(pady=4)
+        ttk.Label(left, text=_("Histórico de Ciclos"), font=("TkDefaultFont", 11, "bold")).pack(pady=4)
 
         list_frame = ttk.Frame(left)
         list_frame.pack(fill=tk.BOTH, expand=True)
@@ -653,23 +654,23 @@ class HistoryTab(ttk.Frame):
 
         btn_frame = ttk.Frame(left)
         btn_frame.pack(fill=tk.X, pady=4)
-        ttk.Button(btn_frame, text="🔄 Restaurar Ciclo", command=self._restore_ciclo).pack(fill=tk.X, pady=2)
-        ttk.Button(btn_frame, text="📄 Gerar Relatório PDF", command=self._generate_ciclo_report).pack(fill=tk.X, pady=2)
-        ttk.Button(btn_frame, text="🗑️ Excluir Ciclo", command=self._delete_ciclo).pack(fill=tk.X, pady=2)
-        ttk.Button(btn_frame, text="🧹 Limpar Histórico", command=self._clear_ciclo_history).pack(fill=tk.X, pady=2)
+        ttk.Button(btn_frame, text=_("🔄 Restaurar Ciclo"), command=self._restore_ciclo).pack(fill=tk.X, pady=2)
+        ttk.Button(btn_frame, text=_("📄 Gerar Relatório PDF"), command=self._generate_ciclo_report).pack(fill=tk.X, pady=2)
+        ttk.Button(btn_frame, text=_("🗑️ Excluir Ciclo"), command=self._delete_ciclo).pack(fill=tk.X, pady=2)
+        ttk.Button(btn_frame, text=_("🧹 Limpar Histórico"), command=self._clear_ciclo_history).pack(fill=tk.X, pady=2)
 
         right = ttk.Frame(paned, padding=4)
         paned.add(right, minsize=400)
 
         self._ciclo_detail_label = ttk.Label(
-            right, text="Selecione um ciclo para ver os detalhes.", foreground="gray"
+            right, text=_("Selecione um ciclo para ver os detalhes."), foreground="gray"
         )
         self._ciclo_detail_label.pack(pady=20)
 
         self._ciclo_detail_frame = ttk.Frame(right)
 
         ttk.Label(
-            self._ciclo_detail_frame, text="Acólitos no ciclo:", font=("TkDefaultFont", 10, "bold")
+            self._ciclo_detail_frame, text=_("Acólitos no ciclo:"), font=("TkDefaultFont", 10, "bold")
         ).pack(anchor="w")
 
         ac_frame = ttk.Frame(self._ciclo_detail_frame)
@@ -723,7 +724,7 @@ class HistoryTab(ttk.Frame):
     def _restore_ciclo(self):
         sel = self._ciclo_listbox.curselection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione um ciclo para restaurar.")
+            messagebox.showinfo(_("Aviso"), _("Selecione um ciclo para restaurar."))
             return
         idx = sel[0]
         if idx >= len(self._ciclo_items):
@@ -786,7 +787,7 @@ class HistoryTab(ttk.Frame):
     def _generate_ciclo_report(self):
         sel = self._ciclo_listbox.curselection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione um ciclo para gerar o relatório.")
+            messagebox.showinfo(_("Aviso"), _("Selecione um ciclo para gerar o relatório."))
             return
         idx = sel[0]
         if idx >= len(self._ciclo_items):
@@ -796,7 +797,7 @@ class HistoryTab(ttk.Frame):
         path = filedialog.asksaveasfilename(
             defaultextension=".pdf",
             filetypes=[("PDF", "*.pdf")],
-            title="Salvar relatório do ciclo como",
+            title=_("Salvar relatório do ciclo como"),
             initialfile=f"relatorio_{ch.label.replace(' ', '_')}.pdf",
         )
         if not path:
@@ -829,12 +830,12 @@ class HistoryTab(ttk.Frame):
             ):
                 self._open_file(path)
         except Exception as e:
-            messagebox.showerror("Erro", f"Falha ao gerar relatório:\n{e}")
+            messagebox.showerror(_("Erro"), f_("Falha ao gerar relatório:\n{e}"))
 
     def _delete_ciclo(self):
         sel = self._ciclo_listbox.curselection()
         if not sel:
-            messagebox.showinfo("Aviso", "Selecione um ciclo para excluir.")
+            messagebox.showinfo(_("Aviso"), _("Selecione um ciclo para excluir."))
             return
         idx = sel[0]
         if idx >= len(self._ciclo_items):
@@ -851,11 +852,11 @@ class HistoryTab(ttk.Frame):
         self._refresh_ciclo_list()
         self._ciclo_detail_label.pack(pady=20)
         self._ciclo_detail_frame.pack_forget()
-        messagebox.showinfo("Concluído", "Ciclo excluído do histórico.")
+        messagebox.showinfo(_("Concluído"), _("Ciclo excluído do histórico."))
 
     def _clear_ciclo_history(self):
         if not self.app.ciclo_history:
-            messagebox.showinfo("Aviso", "O histórico de ciclos já está vazio.")
+            messagebox.showinfo(_("Aviso"), _("O histórico de ciclos já está vazio."))
             return
         if not messagebox.askyesno(
             "Confirmar",
@@ -868,7 +869,7 @@ class HistoryTab(ttk.Frame):
         self._refresh_ciclo_list()
         self._ciclo_detail_label.pack(pady=20)
         self._ciclo_detail_frame.pack_forget()
-        messagebox.showinfo("Concluído", "Histórico de ciclos limpo.")
+        messagebox.showinfo(_("Concluído"), _("Histórico de ciclos limpo."))
 
     def _open_file(self, path: str):
         try:
