@@ -50,17 +50,6 @@ def _format_date(d: date) -> str:
     return d.strftime("%d/%m/%Y")
 
 
-def _birthdate_matches_day(birthdate_str: str, day: int, month: int) -> bool:
-    """Check if an acolyte's birthdate (DD/MM/YYYY) matches a given day/month."""
-    if not birthdate_str:
-        return False
-    try:
-        parts = birthdate_str.strip().split("/")
-        return int(parts[0]) == day and int(parts[1]) == month
-    except (ValueError, IndexError):
-        return False
-
-
 def _date_time_sort_key(date_str: str, time_str: str):
     """Sort key by date/time with empty or invalid time at the end of day."""
     parsed_date = _parse_date(date_str)
@@ -1393,15 +1382,19 @@ class CalendarTab(ttk.Frame):
         for day_num in range(1, num_days + 1):
             infos[day_num] = DayInfo(date(year, month, day_num))
 
-        date_format = "%d/%m/%Y"
-
         # Birthdays
         for ac in self.app.acolytes:
             if not ac.birthdate:
                 continue
-            for day_num in range(1, num_days + 1):
-                if _birthdate_matches_day(ac.birthdate, day_num, month):
-                    infos[day_num].birthdays.append(ac)
+            try:
+                parts = ac.birthdate.strip().split("/")
+                if len(parts) >= 2:
+                    d_day = int(parts[0])
+                    d_month = int(parts[1])
+                    if d_month == month and d_day in infos:
+                        infos[d_day].birthdays.append(ac)
+            except (ValueError, IndexError):
+                continue
 
         # Generated schedules (history)
         for gs in self.app.generated_schedules:
