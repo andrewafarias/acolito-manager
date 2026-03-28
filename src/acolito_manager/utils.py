@@ -1,5 +1,8 @@
 """Funções utilitárias compartilhadas pelo projeto."""
 
+import os
+import sys
+import subprocess
 import calendar
 from datetime import datetime, timedelta
 from typing import List
@@ -94,6 +97,22 @@ def normalize_date(date_str: str) -> str:
             return date_str
     except (ValueError, IndexError):
         return date_str
+
+
+def open_file(path: str):
+    """Abre o arquivo com o programa padrão do sistema, protegendo contra injeção de comandos."""
+    try:
+        if sys.platform.startswith("darwin"):
+            subprocess.call(["open", "--", path])
+        elif sys.platform.startswith("win"):
+            os.startfile(path)
+        else:
+            # xdg-open doesn't support '--' on all distributions.
+            # Using absolute path to ensure it starts with '/' (on Linux) to avoid argument injection.
+            abs_path = os.path.abspath(path)
+            subprocess.call(["xdg-open", abs_path])
+    except Exception:
+        pass
 
 
 def get_birthday_acolytes_this_week(acolytes) -> list:
