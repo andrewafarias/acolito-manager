@@ -1,14 +1,12 @@
 """Aba de histórico de convocações e atividades finalizadas."""
 
-import os
-import sys
-import subprocess
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from datetime import datetime
 
 from ..models import ScheduleSlot, Activity, Acolyte
 from ..report_generator import generate_report
+from ..utils import open_file
 from .dialogs import CloseCicloDialog
 
 
@@ -871,12 +869,4 @@ class HistoryTab(ttk.Frame):
         messagebox.showinfo("Concluído", "Histórico de ciclos limpo.")
 
     def _open_file(self, path: str):
-        try:
-            if sys.platform.startswith("darwin"):
-                subprocess.call(["open", path])
-            elif sys.platform.startswith("win"):
-                os.startfile(path)
-            else:
-                subprocess.call(["xdg-open", path])
-        except Exception:
-            pass
+        open_file(path)
