@@ -843,6 +843,8 @@ class AcolytesTab(ttk.Frame):
             susp.start_date = dlg.result["start_date"]
             susp.end_date = dlg.result["end_date"]
             susp.is_active = dlg.result["is_active"]
+            if hasattr(susp, "_parse_dates"):
+                susp._parse_dates()
             ac.is_suspended = is_currently_suspended(ac)
             self._show_acolyte_detail()
             self.refresh_list()

@@ -1,6 +1,7 @@
 """Modelos de dados da aplicação de gerenciamento de acólitos."""
 
 from dataclasses import dataclass, field
+from datetime import datetime, date
 from typing import List, Optional
 import uuid
 
@@ -101,6 +102,23 @@ class Suspension:
     is_active: bool = True
     end_date: str = ""
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    start_date_dt: Optional[date] = field(init=False, default=None)
+    end_date_dt: Optional[date] = field(init=False, default=None)
+
+    def __post_init__(self):
+        self._parse_dates()
+
+    def _parse_dates(self):
+        try:
+            if self.start_date:
+                self.start_date_dt = datetime.strptime(self.start_date, "%d/%m/%Y").date()
+        except ValueError:
+            self.start_date_dt = None
+        try:
+            if self.end_date:
+                self.end_date_dt = datetime.strptime(self.end_date, "%d/%m/%Y").date()
+        except ValueError:
+            self.end_date_dt = None
 
     def to_dict(self) -> dict:
         return {
