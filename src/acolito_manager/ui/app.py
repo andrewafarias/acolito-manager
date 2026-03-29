@@ -18,6 +18,7 @@ from ..models import (
     StandardSlot,
     CicloHistoryEntry,
 )
+from ..undo_manager import UndoManager
 from .schedule_tab import ScheduleTab
 from .acolytes_tab import AcolytesTab
 from .history_tab import HistoryTab
@@ -51,6 +52,9 @@ class App:
             "muted_birthdate_notifications": [],
         }
 
+        self.undo_manager = UndoManager()
+        self._is_restoring = False
+
         self.root = tk.Tk()
         self.root.title("Gerenciador de Acólitos")
         self.root.geometry("1200x800")
@@ -60,6 +64,9 @@ class App:
         self._build_menu()
         self._build_notebook()
         self._load_data()
+
+        # Push the initial state so that the very first mutation can be undone.
+        self.undo_manager.push(self._capture_state())
 
         # Make custom_common_times accessible to time picker
         TimePickerDialog._app = self
@@ -116,6 +123,15 @@ class App:
             command=self._on_toggle_auto_lift_suspensions,
         )
 
+        edit_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Editar", menu=edit_menu)
+        edit_menu.add_command(
+            label="Desfazer", command=self.undo, accelerator="Ctrl+Z"
+        )
+        edit_menu.add_command(
+            label="Refazer", command=self.redo, accelerator="Ctrl+Y"
+        )
+
         help_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label=_("Ajuda"), menu=help_menu)
         help_menu.add_command(label=_("Sobre"), command=self._show_about)
@@ -129,6 +145,9 @@ class App:
         lang_menu.add_command(label=_("Latina (LA)"), command=lambda: self._set_language("la"))
 
         self.root.bind("<Control-s>", lambda e: self.save())
+        self.root.bind("<Control-z>", lambda e: self.undo())
+        self.root.bind("<Control-y>", lambda e: self.redo())
+        self.root.bind("<Control-Z>", lambda e: self.redo())
 
     def _set_language(self, lang_code: str):
         from ..i18n import set_language
@@ -238,6 +257,81 @@ class App:
             self.current_cycle_name,
             self.birthday_settings,
         )
+        if not self._is_restoring:
+            self.undo_manager.push(self._capture_state())
+
+    # -- undo / redo -------------------------------------------------------
+
+    def _capture_state(self) -> dict:
+        """Snapshot the entire application state as a plain dict."""
+        return {
+            "acolytes": [a.to_dict() for a in self.acolytes],
+            "schedule_slots": [s.to_dict() for s in self.schedule_slots],
+            "general_events": [e.to_dict() for e in self.general_events],
+            "generated_schedules": [g.to_dict() for g in self.generated_schedules],
+            "finalized_event_batches": [
+                f.to_dict() for f in self.finalized_event_batches
+            ],
+            "standard_slots": [s.to_dict() for s in self.standard_slots],
+            "ciclo_history": [c.to_dict() for c in self.ciclo_history],
+            "custom_common_times": list(self.custom_common_times),
+        }
+
+    def _restore_state(self, state: dict) -> None:
+        """Replace in-memory data with a previously captured snapshot."""
+        self.acolytes = [Acolyte.from_dict(a) for a in state["acolytes"]]
+        self.schedule_slots = [
+            ScheduleSlot.from_dict(s) for s in state["schedule_slots"]
+        ]
+        self.general_events = [
+            GeneralEvent.from_dict(e) for e in state["general_events"]
+        ]
+        self.generated_schedules = [
+            GeneratedSchedule.from_dict(g) for g in state["generated_schedules"]
+        ]
+        self.finalized_event_batches = [
+            FinalizedEventBatch.from_dict(f)
+            for f in state["finalized_event_batches"]
+        ]
+        self.standard_slots = [
+            StandardSlot.from_dict(s) for s in state["standard_slots"]
+        ]
+        self.ciclo_history = [
+            CicloHistoryEntry.from_dict(c) for c in state["ciclo_history"]
+        ]
+        self.custom_common_times = list(state["custom_common_times"])
+
+    def _refresh_all(self) -> None:
+        """Refresh every tab so the UI reflects the current in-memory data."""
+        self.schedule_tab.refresh_acolyte_list()
+        self.schedule_tab.load_slots_from_data()
+        self.events_tab.refresh_list()
+        self.acolytes_tab.refresh_list()
+        self.history_tab.refresh()
+
+    def undo(self) -> None:
+        state = self.undo_manager.undo()
+        if state is None:
+            return
+        self._restore_state(state)
+        self._is_restoring = True
+        try:
+            self.save()
+        finally:
+            self._is_restoring = False
+        self._refresh_all()
+
+    def redo(self) -> None:
+        state = self.undo_manager.redo()
+        if state is None:
+            return
+        self._restore_state(state)
+        self._is_restoring = True
+        try:
+            self.save()
+        finally:
+            self._is_restoring = False
+        self._refresh_all()
 
     def _on_toggle_include_suspended_general_event(self):
         self.include_suspended_in_general_event = bool(
